@@ -5,106 +5,140 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>How to run BNGZR scoring — BNGZR</title>
 <style>
-/* BNGZR site - self-contained, no external anything. Inlined into every page. */
 :root {
-  --bg: #ffffff;
-  --fg: #1a1a1a;
-  --muted: #666666;
-  --line: #d8d8d8;
-  --head-bg: #f2f2f2;
-  --accent: #0b5ea8;
-  --stripe: #f7f7f7;
-  --note-bg: #fff6de;
-  --note-line: #e0c26a;
-  --up: #1a7d3c;
-  --down: #b03030;
+  --bg:      #f7f7f5;
+  --panel:   #ffffff;
+  --ink:     #16181d;
+  --muted:   #6b7280;
+  --line:    #e3e3df;
+  --accent:  #1e5f8f;
+  --up:      #1a7f4b;
+  --down:    #a83232;
+  --headbg:  #16181d;
+  --headink: #f7f7f5;
+  --radius:  10px;
 }
+
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #14161a;
-    --fg: #e6e6e6;
-    --muted: #9a9a9a;
-    --line: #3a3d42;
-    --head-bg: #1e2126;
-    --accent: #6fb3e8;
-    --stripe: #191c21;
-    --note-bg: #2b2717;
-    --note-line: #6e5c26;
-    --up: #5fc07f;
-    --down: #e07a7a;
+    --bg:     #14161a;
+    --panel:  #1c1f25;
+    --ink:    #e8e8e5;
+    --muted:  #9aa1ad;
+    --line:   #2c313a;
+    --accent: #6fb3e0;
+    --up:     #4ec27f;
+    --down:   #e5736e;
+    --headbg: #0f1114;
+    --headink:#e8e8e5;
   }
 }
+
 * { box-sizing: border-box; }
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  font-size: 15px;
-  line-height: 1.45;
   background: var(--bg);
-  color: var(--fg);
+  color: var(--ink);
+  font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-text-size-adjust: 100%;
 }
+
 header {
-  border-bottom: 2px solid var(--line);
-  padding: 0.7em 1em 0.5em;
+  background: var(--headbg);
+  color: var(--headink);
+  padding: 1.1rem 1.25rem .6rem;
 }
-header h1 { margin: 0 0 0.3em; font-size: 1.25em; }
-nav { display: flex; flex-wrap: wrap; gap: 0.2em 1.1em; }
-nav a { color: var(--accent); text-decoration: none; padding: 0.15em 0; }
-nav a.active { font-weight: 700; border-bottom: 2px solid var(--accent); }
-main { padding: 1em; max-width: 1100px; margin: 0 auto; }
-main.wide { max-width: none; }
-h2 { font-size: 1.15em; margin: 1.2em 0 0.4em; }
-h2:first-child { margin-top: 0.2em; }
-p.sub { color: var(--muted); margin: 0.2em 0 1em; }
-.note {
-  background: var(--note-bg);
-  border: 1px solid var(--note-line);
+header h1 {
+  margin: 0 0 .7rem;
+  font-size: 1.05rem;
+  font-weight: 650;
+  letter-spacing: .02em;
+}
+nav { display: flex; flex-wrap: wrap; gap: .15rem; }
+nav a {
+  color: var(--headink);
+  text-decoration: none;
+  opacity: .62;
+  padding: .38rem .7rem;
   border-radius: 6px;
-  padding: 0.6em 0.9em;
-  margin: 0.5em 0 1em;
-}
-table { border-collapse: collapse; width: 100%; margin: 0.4em 0 1.2em; }
-th, td {
-  border: 1px solid var(--line);
-  padding: 0.3em 0.55em;
-  text-align: left;
+  font-size: .875rem;
   white-space: nowrap;
 }
-th { background: var(--head-bg); }
-tbody tr:nth-child(even) { background: var(--stripe); }
-td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
-td.up { color: var(--up); font-weight: 600; }
-td.down { color: var(--down); font-weight: 600; }
-td.mut, span.mut { color: var(--muted); }
-td.reason { white-space: normal; min-width: 16em; }
-/* The daily matrix scrolls inside its own container, never the page body. */
-.scroll-x {
-  overflow-x: auto;
-  max-width: 100%;
-  border: 1px solid var(--line);
-  border-radius: 4px;
+nav a:hover { opacity: 1; background: rgba(255,255,255,.08); }
+nav a.active { opacity: 1; background: rgba(255,255,255,.14); font-weight: 600; }
+
+main { padding: 1.4rem 1.25rem 2.5rem; max-width: 1400px; margin: 0 auto; }
+main.wide { max-width: none; }
+
+h2 { font-size: 1.15rem; margin: 0 0 .3rem; font-weight: 650; }
+h3 { font-size: 1rem; margin: 0; font-weight: 650; }
+p.sub { color: var(--muted); margin: 0 0 1.3rem; font-size: .875rem; max-width: 60rem; }
+
+/* Wide content scrolls inside its own box. The page body never scrolls sideways. */
+.scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-variant-numeric: tabular-nums;
+  font-size: .875rem;
 }
-.scroll-x table { margin: 0; width: auto; min-width: 100%; }
-.scroll-x th:first-child, .scroll-x td:first-child {
-  position: sticky;
-  left: 0;
-  background: var(--head-bg);
-}
-footer {
-  border-top: 2px solid var(--line);
-  margin-top: 1.5em;
-  padding: 0.8em 1em 1.2em;
+thead th {
+  position: sticky; top: 0; z-index: 2;
+  background: var(--panel);
+  border-bottom: 2px solid var(--line);
+  text-align: left;
+  padding: .5rem .6rem;
+  font-weight: 600;
+  font-size: .78rem;
+  letter-spacing: .03em;
+  text-transform: uppercase;
   color: var(--muted);
+  white-space: nowrap;
 }
-footer .stamp {
-  font-size: 1.05em;
-  font-weight: 700;
-  color: var(--fg);
+td { padding: .42rem .6rem; border-bottom: 1px solid var(--line); }
+tbody tr:hover td { background: rgba(127,127,127,.07); }
+.num { text-align: right; white-space: nowrap; }
+.rank { color: var(--muted); text-align: right; width: 2.5rem; }
+.strong { font-weight: 650; }
+.day { color: var(--muted); }
+.zero { opacity: .3; }
+.up { color: var(--up); font-weight: 600; }
+.down { color: var(--down); font-weight: 600; }
+
+/* One card per union on All Reports. */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  margin: 0 0 1.5rem;
+  overflow: hidden;
 }
-@media (max-width: 600px) {
-  body { font-size: 14px; }
-  th, td { padding: 0.25em 0.4em; }
-  main { padding: 0.6em; }
+.cardhead {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: .6rem 1.4rem;
+  padding: .8rem 1rem;
+  border-bottom: 1px solid var(--line);
+}
+.cardhead h3 { color: var(--accent); }
+.stats { display: flex; flex-wrap: wrap; gap: .5rem 1.2rem; margin-left: auto;
+         color: var(--muted); font-size: .82rem; }
+.stats b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.card thead th { background: var(--panel); }
+.card table { font-size: .84rem; }
+
+footer {
+  padding: 1.2rem 1.25rem 2rem;
+  color: var(--muted);
+  font-size: .8rem;
+  border-top: 1px solid var(--line);
+}
+.stamp { font-weight: 600; color: var(--ink); }
+
+@media (max-width: 640px) {
+  main { padding: 1rem .75rem 2rem; }
+  .stats { margin-left: 0; }
+  td, thead th { padding: .38rem .45rem; }
 }
 
 /* Practice-data banner. Loud on purpose: rehearsal output must never be
@@ -132,6 +166,7 @@ footer .quiet a:hover { opacity: 1; text-decoration: underline; }
 .runbook pre { overflow-x: auto; }
 .runbook hr { border: 0; border-top: 1px solid currentColor; opacity: .2; margin: 2rem 0; }
 
+
 </style>
 </head>
 <body>
@@ -140,6 +175,7 @@ footer .quiet a:hover { opacity: 1; text-decoration: underline; }
 <h1>BNGZR Score Tracking</h1>
 <nav>
 <a href="index.html">Standings</a>
+<a href="reports.html">All Reports</a>
 <a href="daily.html">Daily</a>
 <a href="weekly.html">Weekly</a>
 <a href="potential.html">Potential Moves</a>
@@ -229,7 +265,7 @@ footer .quiet a:hover { opacity: 1; text-decoration: underline; }
 <p><code>Roster</code>, <code>Pools</code>, <code>Roster History</code>, <code>Config</code> are yours. The engine only ever reads them.</p></div>
 </main>
 <footer>
-<div class="stamp">Computed at 2026-08-18 21:12:21 UTC</div>
+<div class="stamp">Computed at 2026-08-18 22:03:33 UTC</div>
 <div>Season 2026-08-31 to 2026-11-22 · data through 2026-11-14 · 76 scored day(s)</div>
 <div class="quiet"><a href="instructions.html">How to run this</a></div>
 </footer>
