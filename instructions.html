@@ -212,6 +212,21 @@ footer .quiet a:hover { opacity: 1; text-decoration: underline; }
 <p>Importing the same day twice is safe — the engine replaces that day whole rather than adding to it, so nothing doubles.</p>
 <p><strong>Never delete or edit an imported capture tab.</strong> Those tabs are the season&#x27;s record. They are re-read on every run, so editing a score changes the standings, and deleting a tab can take that day&#x27;s scores with it. Tidy the sheet at the end of a season, not during one.</p>
 <p><strong>Before the season starts</strong> every run will say &quot;No column for …&quot;. That is expected and harmless — the scores still import, only the roster stamping is skipped.</p>
+<h2>Falling behind, and catching up</h2>
+<p><strong>There is no deadline on any of this.</strong> The date lives in the tab name, not in the clock. The engine reads the date out of the name you imported and files the scores under the day they belong to, so importing Tuesday&#x27;s export on Thursday still puts it on Tuesday.</p>
+<p>All of these are fine:</p>
+<ul><li>Doing today&#x27;s import tomorrow</li><li>Doing today&#x27;s import tomorrow, then tomorrow&#x27;s an hour later — two tabs, one press</li><li>Skipping three days and importing the lot in one sitting, in any order</li></ul>
+<p>Nothing is lost by falling behind. The SP in the export is a running total, so whatever built up while nobody was looking arrives with the next import. Tested against a real season with three days removed: the season totals came out identical to the point, and the ranked list was identical top to bottom.</p>
+<p>Two things do look odd until you catch up, and both fix themselves:</p>
+<ul><li>The days you skipped read <strong>0</strong> on the Daily scores page, and the next day you imported</li></ul>
+<p>looks enormous — because it is carrying all of them at once</p>
+<ul><li>The season <strong>average</strong> reads high, because it divides by the days it actually has. It</li></ul>
+<p>lifts everybody by the same amount, which is why the standings do not move</p>
+<p><strong>To catch up:</strong> import the tabs you missed, then press <strong>Run Engine</strong> once. That is the whole procedure. Order does not matter — every press recomputes the entire season from scratch — and it only reads tabs newer than what it already has, so a batch costs one pass.</p>
+<h3>The two things to watch</h3>
+<p><strong>Keep the tab name.</strong> It is the only thing carrying the date. A tab renamed to something like &quot;Tuesday scores&quot; is <strong>skipped in silence</strong> — the run still reports success and the site still restamps, so nothing tells you the day did not land. Confirm on the Daily scores page, not by the timestamp.</p>
+<p><strong>Someone leaving is the one thing that is time-sensitive.</strong> Pressing Run Engine stamps the roster into <em>today&#x27;s</em> column. If somebody&#x27;s Status goes to Gone on the 19th and nobody presses until the 21st, their <code>OUT</code> lands on the 21st and they will have scored two days they should not have. Fix it the same way as any other past-day correction, below — set the Status, then put <code>OUT</code> in the right day&#x27;s cell yourself.</p>
+<p><strong>If the export was never taken</strong> for a day, that day&#x27;s snapshot does not exist anywhere and cannot be rebuilt. Totals and standings are still correct; you just will not be able to see how that one day broke down. If you have the file, import it late and the day comes back properly.</p>
 <h2>Check the system is alive</h2>
 <p>Look at the site footer: <strong>Computed at …</strong>. If that time is advancing when people press Run Engine, everything is working. If it is stuck, see <em>Troubleshooting</em>.</p>
 <p>The <code>Activity Log</code> tab lists recent actions. It is a glance, not an audit — it keeps the last few hundred lines.</p>
@@ -261,31 +276,31 @@ footer .quiet a:hover { opacity: 1; text-decoration: underline; }
 <p>The site&#x27;s <strong>Potential Moves</strong> page updates every run and shows where the standings currently point, unrestricted. It is an early warning, not a decision — nothing there has been agreed by anyone.</p>
 <hr>
 <h1>Part four — troubleshooting</h1>
-<p><strong>The site&#x27;s &quot;Computed at&quot; is not advancing.</strong> A run failed. The <code>Activity Log</code> will show whether the engine was even dispatched. Tell Doug.</p>
-<p><strong>Run Engine says &quot;engine not dispatched&quot;.</strong> The GitHub connection is not configured. Doug&#x27;s side.</p>
+<p><strong>The site&#x27;s &quot;Computed at&quot; is not advancing.</strong> A run failed. The <code>Activity Log</code> will show whether the engine was even dispatched. Tell Wizdumb.</p>
+<p><strong>Run Engine says &quot;engine not dispatched&quot;.</strong> The GitHub connection is not configured. Wizdumb&#x27;s side.</p>
 <p><strong>Run Engine says &quot;No column for &lt;date&gt;&quot;.</strong> Today is outside the season, or the date columns need extending. Before the season starts this is normal and expected — the run still happens, only the stamping is skipped.</p>
 <p><strong>A score looks wrong.</strong> Scores come from the capture. They <em>can</em> be edited, because a capture tab is an ordinary tab — but don&#x27;t: every run re-reads those tabs, so an edit there changes the standings and there is no record of what the game actually reported. What is almost always wrong is <em>where somebody was</em>: check their row in <code>Roster History</code> for the days in question, fix it, Fill Forward, Run Engine.</p>
 <p><strong>Somebody is missing from the reports.</strong> They need four things: a row on <code>Roster</code>, a row on <code>Roster History</code>, a union on the days concerned, <strong>and points in a capture</strong>. A player who is correctly set up but has not scored yet simply is not there.</p>
 <p><strong>A pool member is showing as themselves.</strong> Their Pool ID is missing on the <code>Roster</code> tab.</p>
 <p><strong>Two people edited at once.</strong> Harmless. The engine reads the sheet once at the start of a run; whoever saved last wins, same as any spreadsheet.</p>
 <hr>
-<h1>Part five — Doug only</h1>
+<h1>Part five — Wizdumb only</h1>
 <p>These are the switchboard tasks. Ruby never needs them.</p>
 <h2>Before the season starts</h2>
-<ul><li class="task"><strong>Place everyone.</strong> Every player and pool needs a union in the season&#x27;s first column, or they will not score. Anyone genuinely not playing should read <code>OUT</code></li><li class="task"><strong>Check the pools</strong> — every pool needs a union of its own</li><li class="task"><strong>Point the engine at the real season.</strong> The reports show a loud <code>PRACTICE DATA</code> banner and the sheet&#x27;s mirror tabs are named <code>(PRACTICE)</code> until this is switched. When it is, both change on their own</li><li class="task"><strong>Protect the record.</strong> Lock the dated columns of <code>Roster History</code>, plus <code>Roster</code>, <code>Pools</code>, <code>Config</code> and the imported capture tabs, excluding the engine&#x27;s service account. This is what makes it <em>impossible</em> for the engine to rewrite history rather than merely unlikely. Do this once the sheet&#x27;s shape is settled — it locks setup tooling out too</li><li class="task"><strong>Share the sheet</strong> — management team as <strong>Viewers</strong>, Doug and Ruby as <strong>Editors</strong>. Viewers see everything and can change nothing</li></ul>
+<ul><li class="task"><strong>Place everyone.</strong> Every player and pool needs a union in the season&#x27;s first column, or they will not score. Anyone genuinely not playing should read <code>OUT</code></li><li class="task"><strong>Check the pools</strong> — every pool needs a union of its own</li><li class="task"><strong>Point the engine at the real season.</strong> The reports show a loud <code>PRACTICE DATA</code> banner and the sheet&#x27;s mirror tabs are named <code>(PRACTICE)</code> until this is switched. When it is, both change on their own</li><li class="task"><strong>Protect the record.</strong> Lock the dated columns of <code>Roster History</code>, plus <code>Roster</code>, <code>Pools</code>, <code>Config</code> and the imported capture tabs, excluding the engine&#x27;s service account. This is what makes it <em>impossible</em> for the engine to rewrite history rather than merely unlikely. Do this once the sheet&#x27;s shape is settled — it locks setup tooling out too</li><li class="task"><strong>Share the sheet</strong> — management team as <strong>Viewers</strong>, Wizdumb and Ruby as <strong>Editors</strong>. Viewers see everything and can change nothing</li></ul>
 <h2>The Summer shadow sheet — until 2026-08-23</h2>
 <p>There is a second sheet running the tail of the Summer season through the new system, so it gets tested on real days before Fall matters. It has the same <strong>BNGZR</strong> menu and works exactly like the Fall one.</p>
 <p><strong>What you do:</strong> nothing different. Keep importing the day into the live Summer workbook the way you always have. The engine reads that day straight out of it — it cannot write there, so there is nothing to break.</p>
 <p><strong>What is worth doing:</strong> press <strong>Run Engine</strong> in the shadow sheet once a day after the import. That is the whole test. Results appear at <code>/summer/</code> on the reports site under an orange <code>SHADOW RUN</code> banner, and the numbers there are real — just not the record. Where they disagree with the workbook, the workbook wins until the season ends.</p>
 <p><strong>Worth doing once, early:</strong> run a real P/R shuffle there, start to finish. It is the one part of the system nobody has done on live data, and after 2026-08-23 the next chance is the real season.</p>
 <p>One thing to know: the shadow sheet&#x27;s roster is a <strong>copy</strong>, taken on 2026-08-18. It does not follow edits you make to the live workbook. If somebody moves union or leaves during the last week, mirror it into the shadow sheet by hand or its numbers will drift. The run reports exactly which rows disagree, so you are not hunting.</p>
-<p>After 2026-08-23 <strong>Doug</strong> switches it off (one repo variable) and the <code>/summer/</code> pages come down on the next run.</p>
+<p>After 2026-08-23 <strong>Wizdumb</strong> switches it off (one repo variable) and the <code>/summer/</code> pages come down on the next run.</p>
 <h2>Tabs the engine owns</h2>
 <p><code>P/R Proposal</code>, <code>Activity Log</code>, <code>Standings</code>, <code>Daily Scores</code>. All rewritten on every run. Do not hand-edit them; anything typed there is lost on the next press.</p>
 <p><code>Roster</code>, <code>Pools</code>, <code>Roster History</code>, <code>Config</code> are yours. The engine only ever reads them.</p></div>
 </main>
 <footer>
-<div class="stamp">Computed at 2026-08-19 00:03:22 UTC</div>
+<div class="stamp">Computed at 2026-08-19 00:49:28 UTC</div>
 <div>Season 2026-08-31 to 2026-11-22 · data through 2026-11-14 · 76 scored day(s)</div>
 <div class="quiet"><a href="instructions.html">How to run this</a></div>
 </footer>
