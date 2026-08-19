@@ -5,32 +5,82 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Standings — BNGZR</title>
 <style>
+/* BNGZR league site. Inlined into every page; self-contained, system fonts only.
+   Union identity is the spine of the design: unions 1-8 are a ladder, and every
+   page colours them with the same ordered ramp - gold at the top flight fading
+   through the spectrum to slate at the bottom. Tokens come in light and dark. */
+
 :root {
-  --bg:      #f7f7f5;
+  --bg:      #f2f2ef;
   --panel:   #ffffff;
-  --ink:     #16181d;
-  --muted:   #6b7280;
-  --line:    #e3e3df;
-  --accent:  #1e5f8f;
-  --up:      #1a7f4b;
-  --down:    #a83232;
-  --headbg:  #16181d;
-  --headink: #f7f7f5;
-  --radius:  10px;
+  --ink:     #191b21;
+  --muted:   #68707d;
+  --line:    #e4e4df;
+  --line-soft: #eeeeea;
+  --hover:   #f2f4f8;
+  --accent:  #2456c4;
+  --up:      #15803d;
+  --down:    #b42318;
+  --up-soft:   #e8f6ee;
+  --down-soft: #fdecea;
+  --headbg:  #14161b;
+  --headink: #f5f6f7;
+  --radius:  12px;
+  --shadow:  0 1px 2px rgba(20,22,27,.05), 0 4px 16px rgba(20,22,27,.05);
+
+  /* Union ladder ramp: 1 = top flight (gold) ... 8 = bottom (slate).
+     Strong = text/borders/bars; soft = chip and tint backgrounds.
+     Validated for adjacent-pair distinctness (normal vision + CVD) in both
+     modes; the slate bottom rung is deliberately grey - "bottom of the
+     ladder" - and every badge carries its union number, so colour is never
+     the only cue. */
+  --u1: #a87c09;  --u1-soft: #fdf6dd;
+  --u2: #9a3412;  --u2-soft: #fde5d8;
+  --u3: #db2777;  --u3-soft: #fce4ef;
+  --u4: #8b1592;  --u4-soft: #f8e3fb;
+  --u5: #7c3aed;  --u5-soft: #ebe6fc;
+  --u6: #1e40af;  --u6-soft: #dde9fc;
+  --u7: #0e7e9d;  --u7-soft: #d7f0f5;
+  --u8: #3e4756;  --u8-soft: #e4e8ee;
+
+  /* Sequential heat ramp for the daily matrix (single hue, light -> dark). */
+  --h1: #ecf2fc; --h2: #d6e4f9; --h3: #b9d1f4; --h4: #94b8ee;
+
+  /* Medals for the standings podium. */
+  --gold: #f2c14e; --silver: #c9cdd6; --bronze: #d9a06b; --medal-ink: #3a2f10;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg:     #14161a;
-    --panel:  #1c1f25;
-    --ink:    #e8e8e5;
-    --muted:  #9aa1ad;
-    --line:   #2c313a;
-    --accent: #6fb3e0;
-    --up:     #4ec27f;
-    --down:   #e5736e;
-    --headbg: #0f1114;
-    --headink:#e8e8e5;
+    --bg:      #121419;
+    --panel:   #1b1e25;
+    --ink:     #e9eaec;
+    --muted:   #9aa1ad;
+    --line:    #2b303a;
+    --line-soft: #232830;
+    --hover:   #242a34;
+    --accent:  #7fb1f5;
+    --up:      #4ade80;
+    --down:    #f87171;
+    --up-soft:   rgba(74,222,128,.12);
+    --down-soft: rgba(248,113,113,.11);
+    --headbg:  #0d0f13;
+    --headink: #edeef0;
+    --shadow:  0 1px 2px rgba(0,0,0,.35), 0 4px 18px rgba(0,0,0,.30);
+
+    --u1: #fcc419;  --u1-soft: rgba(252,196,25,.13);
+    --u2: #f4732c;  --u2-soft: rgba(244,115,44,.14);
+    --u3: #f984b9;  --u3-soft: rgba(249,132,185,.14);
+    --u4: #cf3ce8;  --u4-soft: rgba(207,60,232,.14);
+    --u5: #bcabfd;  --u5-soft: rgba(188,171,253,.15);
+    --u6: #3d85f4;  --u6-soft: rgba(61,133,244,.16);
+    --u7: #2ee2fa;  --u7-soft: rgba(46,226,250,.11);
+    --u8: #8b9bb4;  --u8-soft: rgba(139,155,180,.15);
+
+    --h1: rgba(96,165,250,.10); --h2: rgba(96,165,250,.20);
+    --h3: rgba(96,165,250,.33); --h4: rgba(96,165,250,.48);
+
+    --gold: #eab308; --silver: #b7bdc9; --bronze: #cf9560; --medal-ink: #241d07;
   }
 }
 
@@ -44,147 +94,493 @@ body {
   -webkit-text-size-adjust: 100%;
 }
 
-header {
+/* Per-union utility: anything tagged uc-N picks up its union's colours. */
+.uc-1 { --uc: var(--u1); --uc-soft: var(--u1-soft); }
+.uc-2 { --uc: var(--u2); --uc-soft: var(--u2-soft); }
+.uc-3 { --uc: var(--u3); --uc-soft: var(--u3-soft); }
+.uc-4 { --uc: var(--u4); --uc-soft: var(--u4-soft); }
+.uc-5 { --uc: var(--u5); --uc-soft: var(--u5-soft); }
+.uc-6 { --uc: var(--u6); --uc-soft: var(--u6-soft); }
+.uc-7 { --uc: var(--u7); --uc-soft: var(--u7-soft); }
+.uc-8 { --uc: var(--u8); --uc-soft: var(--u8-soft); }
+.uc-0 { --uc: var(--muted); --uc-soft: var(--line-soft); }
+
+/* ---- header -------------------------------------------------------------- */
+
+body > header {
   background: var(--headbg);
   color: var(--headink);
-  padding: 1.1rem 1.25rem .6rem;
+  padding: 1.15rem 1.4rem .85rem;
+  /* The ladder, as a signature: 8 hard colour stops, top flight first. */
+  border-bottom: 4px solid transparent;
+  border-image: linear-gradient(90deg,
+    #fcc419 0 12.5%, #f4732c 0 25%, #f984b9 0 37.5%, #cf3ce8 0 50%,
+    #bcabfd 0 62.5%, #3d85f4 0 75%, #2ee2fa 0 87.5%, #8b9bb4 0 100%) 1;
 }
-header h1 {
-  margin: 0 0 .7rem;
-  font-size: 1.05rem;
-  font-weight: 650;
-  letter-spacing: .02em;
+.brand { display: flex; align-items: center; gap: .65rem; margin: 0 0 .85rem; }
+.brand svg { display: block; flex: none; }
+.brand h1 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: .01em;
+  line-height: 1;
 }
-nav { display: flex; flex-wrap: wrap; gap: .15rem; }
+.brand .tag {
+  display: block;
+  font-size: .62rem;
+  font-weight: 600;
+  letter-spacing: .32em;
+  text-transform: uppercase;
+  opacity: .55;
+  margin-top: .3rem;
+}
+
+nav { display: flex; flex-wrap: wrap; gap: .3rem; }
 nav a {
   color: var(--headink);
   text-decoration: none;
-  opacity: .62;
-  padding: .38rem .7rem;
-  border-radius: 6px;
-  font-size: .875rem;
+  opacity: .6;
+  padding: .4rem .8rem;
+  border-radius: 999px;
+  font-size: .84rem;
+  font-weight: 600;
   white-space: nowrap;
 }
-nav a:hover { opacity: 1; background: rgba(255,255,255,.08); }
-nav a.active { opacity: 1; background: rgba(255,255,255,.14); font-weight: 600; }
+nav a:hover { opacity: 1; background: rgba(255,255,255,.09); }
+nav a.active { opacity: 1; background: rgba(255,255,255,.16); }
 /* The other season. Pushed right and set apart, because it leaves this one. */
 nav a.sibling { margin-left: auto; opacity: .65; font-style: italic; }
 nav a.sibling:hover { opacity: 1; }
 
-main { padding: 1.4rem 1.25rem 2.5rem; max-width: 1400px; margin: 0 auto; }
+main { padding: 1.6rem 1.4rem 3rem; max-width: 1440px; margin: 0 auto; }
 main.wide { max-width: none; }
 
-h2 { font-size: 1.15rem; margin: 0 0 .3rem; font-weight: 650; }
-h3 { font-size: 1rem; margin: 0; font-weight: 650; }
-p.sub { color: var(--muted); margin: 0 0 1.3rem; font-size: .875rem; max-width: 60rem; }
+/* ---- page furniture ------------------------------------------------------ */
+
+.pagehead { margin: 0 0 1.4rem; }
+h2 { font-size: 1.45rem; margin: 0 0 .35rem; font-weight: 800; letter-spacing: -.015em; }
+h3 { font-size: 1rem; margin: 0; font-weight: 700; }
+p.sub { color: var(--muted); margin: .1rem 0 0; font-size: .875rem; max-width: 62rem; }
+
+.note {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--u1);
+  border-radius: 8px;
+  padding: .8rem 1rem;
+  margin: 0 0 1.1rem;
+  font-size: .875rem;
+  max-width: 62rem;
+  box-shadow: var(--shadow);
+}
+
+/* Stat tiles: a labelled number, used for page summaries. */
+.tiles { display: flex; flex-wrap: wrap; gap: .5rem; margin: 0 0 1.2rem; }
+.tile {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: .5rem .85rem .45rem;
+  min-width: 6.2rem;
+}
+.tile .v {
+  display: block;
+  font-size: 1.15rem;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.01em;
+  line-height: 1.25;
+}
+.tile .l {
+  display: block;
+  font-size: .64rem;
+  font-weight: 650;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: .1rem;
+}
+.tile.t-up .v { color: var(--up); }
+.tile.t-down .v { color: var(--down); }
+
+/* ---- union badge --------------------------------------------------------- */
+
+.ub {
+  display: inline-flex;
+  align-items: center;
+  gap: .38em;
+  background: var(--uc-soft);
+  color: var(--uc);
+  border-radius: 999px;
+  padding: .16em .68em .16em .5em;
+  font-size: .78rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  line-height: 1.35;
+}
+.ub::before {
+  content: "";
+  width: .52em; height: .52em;
+  border-radius: 50%;
+  background: var(--uc);
+  flex: none;
+}
+.ub.big { font-size: 1rem; padding: .22em .8em .22em .6em; }
+.ub .un { font-weight: 700; }
+.ub.none { color: var(--muted); background: var(--line-soft); }
+.ub.none::before { background: var(--muted); opacity: .5; }
+
+/* Pool tag: a spot shared by several players. */
+.pool {
+  display: inline-block;
+  font-size: .66rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 0 .32em;
+  margin-left: .45em;
+  vertical-align: .08em;
+}
+
+/* ---- tables -------------------------------------------------------------- */
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
 
 /* Wide content scrolls inside its own box. The page body never scrolls sideways. */
 .scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
 table {
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   width: 100%;
   font-variant-numeric: tabular-nums;
   font-size: .875rem;
 }
 thead th {
-  position: sticky; top: 0; z-index: 2;
+  position: sticky; top: 0; z-index: 3;
   background: var(--panel);
   border-bottom: 2px solid var(--line);
   text-align: left;
-  padding: .5rem .6rem;
-  font-weight: 600;
-  font-size: .78rem;
-  letter-spacing: .03em;
+  padding: .55rem .65rem;
+  font-weight: 650;
+  font-size: .72rem;
+  letter-spacing: .06em;
   text-transform: uppercase;
   color: var(--muted);
   white-space: nowrap;
 }
-td { padding: .42rem .6rem; border-bottom: 1px solid var(--line); }
-tbody tr:hover td { background: rgba(127,127,127,.07); }
+td { padding: .46rem .65rem; border-bottom: 1px solid var(--line-soft); }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover td { background: var(--hover); }
 .num { text-align: right; white-space: nowrap; }
-.rank { color: var(--muted); text-align: right; width: 2.5rem; }
-.strong { font-weight: 650; }
+.rank { color: var(--muted); text-align: right; width: 2.6rem; }
+.strong { font-weight: 700; }
+.name { font-weight: 600; }
 .day { color: var(--muted); }
 .zero { opacity: .3; }
-.up { color: var(--up); font-weight: 600; }
-.down { color: var(--down); font-weight: 600; }
+.mut { color: var(--muted); }
+.up { color: var(--up); font-weight: 650; }
+.down { color: var(--down); font-weight: 650; }
+tr.dim td { opacity: .45; }
+tr.dim:hover td { opacity: 1; }
 
-/* One card per union on All Reports. */
+/* Rank medals: circles, so they never read as union chips (rounded pills). */
+.medal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.55rem; height: 1.55rem;
+  border-radius: 50%;
+  font-size: .78rem;
+  font-weight: 800;
+  color: var(--medal-ink);
+}
+.m1 { background: var(--gold); }
+.m2 { background: var(--silver); }
+.m3 { background: var(--bronze); }
+
+/* Season-total bar: length shows scale, colour shows union. */
+td.scale { min-width: 9.5rem; }
+.bar-line {
+  display: block;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line-soft);
+  margin-top: .28rem;
+  overflow: hidden;
+}
+.bar-line i {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--uc, var(--accent));
+  width: var(--w, 0%);
+}
+
+/* ---- union cards (All Reports, Weekly, Roster) --------------------------- */
+
 .card {
   background: var(--panel);
   border: 1px solid var(--line);
+  border-top: 4px solid var(--uc, var(--line));
   border-radius: var(--radius);
-  margin: 0 0 1.5rem;
+  margin: 0 0 1.6rem;
   overflow: hidden;
+  box-shadow: var(--shadow);
 }
 .cardhead {
-  display: flex; flex-wrap: wrap; align-items: baseline; gap: .6rem 1.4rem;
-  padding: .8rem 1rem;
+  display: flex; flex-wrap: wrap; align-items: center; gap: .7rem 1.2rem;
+  padding: .85rem 1rem;
   border-bottom: 1px solid var(--line);
 }
-.cardhead h3 { color: var(--accent); }
-.stats { display: flex; flex-wrap: wrap; gap: .5rem 1.2rem; margin-left: auto;
-         color: var(--muted); font-size: .82rem; }
-.stats b { color: var(--ink); font-variant-numeric: tabular-nums; }
-.card thead th { background: var(--panel); }
+.cardhead .stats { display: flex; flex-wrap: wrap; gap: .4rem 1.6rem; margin-left: auto; }
+.cardhead .stat .v {
+  display: block; font-size: 1.05rem; font-weight: 750;
+  font-variant-numeric: tabular-nums; line-height: 1.2;
+}
+.cardhead .stat .l {
+  display: block; font-size: .62rem; font-weight: 650;
+  letter-spacing: .09em; text-transform: uppercase; color: var(--muted);
+}
 .card table { font-size: .84rem; }
 
+/* Summary columns on report cards sit on a faint tint so they group visually. */
+td.sum, thead th.sum { background: var(--line-soft); }
+tbody tr:hover td.sum { background: var(--hover); }
+
+/* Sticky name column inside horizontally scrolling card tables. */
+th.stick, td.stick {
+  position: sticky; left: 0; z-index: 2;
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+  max-width: 12rem;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+thead th.stick { z-index: 4; }
+tbody tr:hover td.stick { background: var(--hover); }
+.stick .rank { display: inline-block; width: 1.5rem; }
+
+/* ---- daily matrix -------------------------------------------------------- */
+
+/* A 2D scroll region: sticky header row and sticky name column both work. */
+.matrix-wrap { overflow: auto; max-height: 82vh; -webkit-overflow-scrolling: touch; }
+.matrix { width: auto; }
+.matrix th.date {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  text-align: left;
+  padding: .5rem .3rem;
+  font-size: .68rem;
+  letter-spacing: .04em;
+  min-width: 1.7rem;
+}
+.matrix td { padding: .3rem .45rem; border-bottom: 1px solid var(--line-soft); }
+/* No hover override here: .matrix td.h1-.h4 outrank the row hover, so heat
+   cells keep their colour - the heat IS the signal. */
+.matrix td.h1 { background: var(--h1); }
+.matrix td.h2 { background: var(--h2); }
+.matrix td.h3 { background: var(--h3); }
+.matrix td.h4 { background: var(--h4); }
+.matrix td.z { color: var(--muted); opacity: .45; text-align: center; }
+
+/* The matrix name column carries a badge AND a name in one sticky cell, and at
+   12rem the name lost - "iSeven7" and "iSeven77" both truncated to the same
+   string, which is worse than useless when they are different players. The badge
+   gives up its union name here (the number still identifies it, in the ladder
+   colour) and the cell widens, so full names fit. The date columns are what this
+   table is for scrolling. */
+.matrix .ub .un { display: none; }
+.matrix th.stick, .matrix td.stick { max-width: 16.5rem; }
+@media (max-width: 640px) {
+  .matrix th.stick, .matrix td.stick { max-width: 9.5rem; }
+}
+
+/* Heat legend next to the matrix title. */
+.heatkey { display: inline-flex; align-items: center; gap: .3rem;
+           font-size: .72rem; color: var(--muted); }
+.heatkey i { width: 1rem; height: .65rem; border-radius: 2px; display: inline-block; }
+
+/* ---- potential moves ----------------------------------------------------- */
+
+.chip {
+  display: inline-block;
+  border-radius: 6px;
+  padding: .1em .5em;
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  white-space: nowrap;
+}
+.chip.up   { background: var(--up-soft);   color: var(--up); }
+.chip.down { background: var(--down-soft); color: var(--down); }
+.chip.up::before   { content: "\25b2\00a0"; font-size: .8em; }
+.chip.down::before { content: "\25bc\00a0"; font-size: .8em; }
+.chip.mut  { background: var(--line-soft); color: var(--muted); font-weight: 600; }
+.chip.hold { background: var(--line-soft); color: var(--muted);
+             border: 1px dashed var(--muted); font-size: .66rem;
+             letter-spacing: .06em; }
+tr.r-up td { background: var(--up-soft); }
+tr.r-down td { background: var(--down-soft); }
+tr.r-up:hover td, tr.r-down:hover td { background: var(--hover); }
+td.reason { color: var(--muted); font-size: .8rem; }
+
+/* ---- roster grid --------------------------------------------------------- */
+
+.roster-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+  gap: 1.1rem;
+}
+.roster-grid .card { margin: 0; }
+.roster-list { list-style: none; margin: 0; padding: .35rem 0; }
+.roster-list li {
+  padding: .34rem 1rem;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: .875rem;
+  font-weight: 550;
+}
+.roster-list li:last-child { border-bottom: 0; }
+.cardhead .code {
+  margin-left: auto;
+  font-size: .7rem; font-weight: 650; letter-spacing: .12em;
+  color: var(--muted); text-transform: uppercase;
+}
+.cardhead .count { font-size: .78rem; color: var(--muted); }
+
+/* ---- footer -------------------------------------------------------------- */
+
 footer {
-  padding: 1.2rem 1.25rem 2rem;
+  padding: 1.2rem 1.4rem 2rem;
   color: var(--muted);
   font-size: .8rem;
   border-top: 1px solid var(--line);
 }
-.stamp { font-weight: 600; color: var(--ink); }
-
-@media (max-width: 640px) {
-  main { padding: 1rem .75rem 2rem; }
-  .stats { margin-left: 0; }
-  td, thead th { padding: .38rem .45rem; }
-}
-
-/* Practice-data banner. Loud on purpose: rehearsal output must never be
-   mistaken for a real season. Absent entirely on real runs. */
-.practice-banner {
-  background: #7f1d1d; color: #fff; padding: .7rem 1rem; text-align: center;
-  font-weight: 700; letter-spacing: .04em; line-height: 1.4;
-}
-.practice-banner small { display: block; font-weight: 400; opacity: .85; letter-spacing: 0; }
-
-/* Shadow run. Deliberately a different colour from the practice banner: this data
-   is real, the caveat is only about which copy is authoritative. Red would teach
-   people to ignore red. */
-.shadow-banner {
-  background: #78350f; color: #fff; padding: .7rem 1rem; text-align: center;
-  font-weight: 700; letter-spacing: .04em; line-height: 1.4;
-}
-.shadow-banner small { display: block; font-weight: 400; opacity: .85; letter-spacing: 0; }
+.stamp { font-weight: 650; color: var(--ink); }
 
 /* Quiet by request: present, findable, not advertised. */
 footer .quiet { margin-top: .5rem; font-size: .8rem; opacity: .45; }
 footer .quiet a { color: inherit; }
 footer .quiet a:hover { opacity: 1; text-decoration: underline; }
 
+/* ---- banners ------------------------------------------------------------- */
+
+/* Practice-data banner. Loud on purpose: rehearsal output must never be
+   mistaken for a real season. Absent entirely on real runs. */
+.practice-banner {
+  background: repeating-linear-gradient(-45deg,
+    #7f1d1d 0 14px, #6b1717 14px 28px);
+  color: #fff; padding: .75rem 1rem; text-align: center;
+  font-weight: 800; letter-spacing: .06em; line-height: 1.45;
+  text-transform: uppercase; font-size: .9rem;
+}
+.practice-banner small {
+  display: block; font-weight: 450; opacity: .88; letter-spacing: 0;
+  text-transform: none; font-size: .8rem;
+}
+
+/* Shadow run. Deliberately a different colour from the practice banner: this data
+   is real, the caveat is only about which copy is authoritative. Red would teach
+   people to ignore red. */
+.shadow-banner {
+  background: #78350f;
+  border-bottom: 3px solid #b45309;
+  color: #fff; padding: .75rem 1rem; text-align: center;
+  font-weight: 800; letter-spacing: .06em; line-height: 1.45;
+  text-transform: uppercase; font-size: .9rem;
+}
+.shadow-banner small {
+  display: block; font-weight: 450; opacity: .88; letter-spacing: 0;
+  text-transform: none; font-size: .8rem;
+}
+
+/* ---- runbook ------------------------------------------------------------- */
+
 /* The runbook is long-form prose, so it gets prose measure and rhythm. */
 .runbook { max-width: 44rem; line-height: 1.65; }
-.runbook h1 { margin: 2.4rem 0 .6rem; padding-top: 1.4rem; border-top: 2px solid currentColor; }
-.runbook h1:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
-.runbook h2 { margin: 1.8rem 0 .5rem; }
+.runbook h1 { margin: 2.2rem 0 .6rem; font-size: 1.35rem; letter-spacing: -.01em; }
+.runbook h1:first-child { margin-top: 0; }
+.runbook h2 { margin: 1.8rem 0 .5rem; font-size: 1.1rem; }
 .runbook h3 { margin: 1.2rem 0 .4rem; font-size: 1rem; }
 .runbook li { margin: .3rem 0; }
 .runbook li.task { list-style: none; margin-left: -1.2rem; }
 .runbook li.task::before { content: "\2610\00a0\00a0"; opacity: .6; }
-.runbook pre { overflow-x: auto; }
-.runbook hr { border: 0; border-top: 1px solid currentColor; opacity: .2; margin: 2rem 0; }
+.runbook pre { overflow-x: auto; background: var(--panel);
+               border: 1px solid var(--line); border-radius: 8px;
+               padding: .8rem 1rem; font-size: .82rem; }
+.runbook code { background: var(--panel); border: 1px solid var(--line-soft);
+                border-radius: 4px; padding: .05em .3em; font-size: .85em; }
+.runbook pre code { border: 0; padding: 0; background: none; }
+.runbook hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
 
+/* ---- small screens ------------------------------------------------------- */
+
+@media (max-width: 640px) {
+  main { padding: 1rem .7rem 2rem; }
+  header { padding: .9rem .8rem .7rem; }
+  h2 { font-size: 1.2rem; }
+  td, thead th { padding: .38rem .45rem; }
+  table { font-size: .8rem; }
+  .card table { font-size: .78rem; }
+  .cardhead .stats { margin-left: 0; gap: .4rem 1.1rem; }
+  th.stick, td.stick { max-width: 8rem; }
+  td.scale { min-width: 6.5rem; }
+  /* Keep the season total on screen: long names give way, with an ellipsis. */
+  td.name { max-width: 8.5rem; overflow: hidden; text-overflow: ellipsis;
+            white-space: nowrap; }
+  .tile { min-width: 5.2rem; padding: .4rem .6rem .35rem; }
+  .tile .v { font-size: 1rem; }
+  .roster-grid { grid-template-columns: 1fr; }
+}
+
+
+/* Phones: reclaim width for the number people actually came for.
+   Measured at 390px before this rule, the standings table ran 524px inside a
+   366px box, and SEASON TOTAL - the headline figure on the whole site - was
+   clipped mid-digits at the edge. Rank narrows and the union badge drops its
+   name, keeping the dot and the number; that recovers about 60px, which is
+   enough to bring the total fully on screen. The union stays identifiable by
+   number, so colour is never carrying the label alone. Only DAILY AVERAGE,
+   the least-used column, is left to scroll for.
+
+   Deliberately a tighter breakpoint than the 640px block above: at 600px there
+   is room for the names and dropping them would be a loss for nothing. */
+@media (max-width: 460px) {
+  .ub .un { display: none; }
+  .ub { padding: .16em .55em .16em .45em; gap: .3em; }
+  .ub.big .un { display: inline; }
+  td.rank, th.rank { width: 1.9rem; }
+  td, thead th { padding: .36rem .38rem; }
+  td.name { max-width: 8rem; }
+}
 
 </style>
 </head>
 <body>
 <div class="practice-banner">PRACTICE DATA — NOT THE REAL SEASON<small>Rendered from data/practice-fall. Scores, standings and moves on this page are a rehearsal.</small></div>
 <header>
-<h1>BNGZR Score Tracking</h1>
+<div class="brand">
+<svg width="36" height="24" viewBox="0 0 36 24" aria-hidden="true">
+<rect x="0"  y="17" width="3.4" height="7"  rx="1" fill="#8b9bb4"/>
+<rect x="4.5"  y="15" width="3.4" height="9"  rx="1" fill="#2ee2fa"/>
+<rect x="9"  y="13" width="3.4" height="11" rx="1" fill="#3d85f4"/>
+<rect x="13.5" y="11" width="3.4" height="13" rx="1" fill="#bcabfd"/>
+<rect x="18" y="9"  width="3.4" height="15" rx="1" fill="#cf3ce8"/>
+<rect x="22.5" y="6.5" width="3.4" height="17.5" rx="1" fill="#f984b9"/>
+<rect x="27" y="4"  width="3.4" height="20" rx="1" fill="#f4732c"/>
+<rect x="31.5" y="0"  width="3.4" height="24" rx="1" fill="#fcc419"/>
+</svg>
+<h1>BNGZR<span class="tag">Score Tracking</span></h1>
+</div>
 <nav>
 <a href="index.html" class="active">Standings</a>
 <a href="reports.html">All Reports</a>
@@ -196,10 +592,10 @@ footer .quiet a:hover { opacity: 1; text-decoration: underline; }
 </nav>
 </header>
 <main class="">
-<h2>Season standings</h2><p class='sub'>143 roster spots · scored days 2026-08-31 to 2026-11-14</p><table><thead><tr><th class='num'>#</th><th>Name</th><th>Union</th><th class='num'>Season total</th><th class='num'>Daily average</th></tr></thead><tbody><tr><td class='num'>1</td><td>Angel rain</td><td>Charlie (3)</td><td class='num'>184,109</td><td class='num'>2,422.49</td></tr><tr><td class='num'>2</td><td>VooDooBuntu BNGZR</td><td>Alpha (1)</td><td class='num'>113,833</td><td class='num'>1,497.80</td></tr><tr><td class='num'>3</td><td>Ruby on Rails BNGZR</td><td>Charlie (3)</td><td class='num'>107,398</td><td class='num'>1,413.13</td></tr><tr><td class='num'>4</td><td>Coffee_fan BNGZR</td><td>Alpha (1)</td><td class='num'>106,452</td><td class='num'>1,400.68</td></tr><tr><td class='num'>5</td><td>TheTrainMan-BNGZR-A</td><td>Alpha (1)</td><td class='num'>92,462</td><td class='num'>1,216.61</td></tr><tr><td class='num'>6</td><td>i786533 (P)</td><td>Alpha (1)</td><td class='num'>91,292</td><td class='num'>1,201.21</td></tr><tr><td class='num'>7</td><td>iSeven77 BNGZR01</td><td>Alpha (1)</td><td class='num'>87,887</td><td class='num'>1,156.41</td></tr><tr><td class='num'>8</td><td>iSeven7 BNGZR01</td><td>Alpha (1)</td><td class='num'>87,329</td><td class='num'>1,149.07</td></tr><tr><td class='num'>9</td><td>Matrix Total (P)</td><td>Alpha (1)</td><td class='num'>86,228</td><td class='num'>1,134.58</td></tr><tr><td class='num'>10</td><td>Pemulwuy BNGZR</td><td>Alpha (1)</td><td class='num'>85,751</td><td class='num'>1,128.30</td></tr><tr><td class='num'>11</td><td>Michaels Corp BNGZR</td><td>Alpha (1)</td><td class='num'>80,777</td><td class='num'>1,062.86</td></tr><tr><td class='num'>12</td><td>Mihalj BNGZR01</td><td>Alpha (1)</td><td class='num'>79,181</td><td class='num'>1,041.86</td></tr><tr><td class='num'>13</td><td>CP_RAIL_KING_BNGZR</td><td>Bravo (2)</td><td class='num'>77,360</td><td class='num'>1,017.89</td></tr><tr><td class='num'>14</td><td>Shyam Sundar BNGZR</td><td>Alpha (1)</td><td class='num'>76,060</td><td class='num'>1,000.79</td></tr><tr><td class='num'>15</td><td>Eor137 bngzr</td><td>Alpha (1)</td><td class='num'>74,406</td><td class='num'>979.03</td></tr><tr><td class='num'>16</td><td>Palis078</td><td>Alpha (1)</td><td class='num'>73,763</td><td class='num'>970.57</td></tr><tr><td class='num'>17</td><td>SourGrapeWhine BNGZR</td><td>Alpha (1)</td><td class='num'>73,119</td><td class='num'>962.09</td></tr><tr><td class='num'>18</td><td>L_S_V</td><td>Alpha (1)</td><td class='num'>72,849</td><td class='num'>958.54</td></tr><tr><td class='num'>19</td><td>PatOKanada BNGZR</td><td>Alpha (1)</td><td class='num'>72,128</td><td class='num'>949.05</td></tr><tr><td class='num'>20</td><td>Vladankos (P)</td><td>Alpha (1)</td><td class='num'>70,139</td><td class='num'>922.88</td></tr><tr><td class='num'>21</td><td>M-Race80 BNGZR</td><td>Alpha (1)</td><td class='num'>70,084</td><td class='num'>922.16</td></tr><tr><td class='num'>22</td><td>NemesisOfFun BNGZR A</td><td>Alpha (1)</td><td class='num'>70,062</td><td class='num'>921.87</td></tr><tr><td class='num'>23</td><td>LargeM BNGZR</td><td>Alpha (1)</td><td class='num'>66,863</td><td class='num'>879.78</td></tr><tr><td class='num'>24</td><td>Mamik_bngzr</td><td>Alpha (1)</td><td class='num'>62,434</td><td class='num'>821.50</td></tr><tr><td class='num'>25</td><td>CPR_Rail_CANADA_BNGZ</td><td>Bravo (2)</td><td class='num'>61,565</td><td class='num'>810.07</td></tr><tr><td class='num'>26</td><td>Mindgamers (P)</td><td>Alpha (1)</td><td class='num'>61,337</td><td class='num'>807.07</td></tr><tr><td class='num'>27</td><td>Shahar BNGZR</td><td>Alpha (1)</td><td class='num'>61,322</td><td class='num'>806.87</td></tr><tr><td class='num'>28</td><td>Melanie BNGZR</td><td>Bravo (2)</td><td class='num'>60,745</td><td class='num'>799.28</td></tr><tr><td class='num'>29</td><td>Waisting Time BNGZR</td><td>Bravo (2)</td><td class='num'>59,801</td><td class='num'>786.86</td></tr><tr><td class='num'>30</td><td>Capt Obvious</td><td>Alpha (1)</td><td class='num'>59,652</td><td class='num'>784.89</td></tr><tr><td class='num'>31</td><td>emacom BNGZR</td><td>Bravo (2)</td><td class='num'>59,560</td><td class='num'>783.68</td></tr><tr><td class='num'>32</td><td>Sir Toppem Hat (P)</td><td>Bravo (2)</td><td class='num'>59,442</td><td class='num'>782.13</td></tr><tr><td class='num'>33</td><td>Pirulos BNGZR</td><td>Bravo (2)</td><td class='num'>58,568</td><td class='num'>770.63</td></tr><tr><td class='num'>34</td><td>Jenuine BNGZR</td><td>Bravo (2)</td><td class='num'>58,412</td><td class='num'>768.58</td></tr><tr><td class='num'>35</td><td>Red BNGZR</td><td>Bravo (2)</td><td class='num'>58,213</td><td class='num'>765.96</td></tr><tr><td class='num'>36</td><td>BIG DAWG BNGZR ALPHA</td><td>Delta (4)</td><td class='num'>57,359</td><td class='num'>754.72</td></tr><tr><td class='num'>37</td><td>Bacardi (P)</td><td>Bravo (2)</td><td class='num'>55,866</td><td class='num'>735.08</td></tr><tr><td class='num'>38</td><td>Chxken BNGZR</td><td>Bravo (2)</td><td class='num'>54,008</td><td class='num'>710.63</td></tr><tr><td class='num'>39</td><td>Zipper BNGZR</td><td>Bravo (2)</td><td class='num'>53,646</td><td class='num'>705.87</td></tr><tr><td class='num'>40</td><td>Thunder1 BNGZR</td><td>Bravo (2)</td><td class='num'>53,348</td><td class='num'>701.95</td></tr><tr><td class='num'>41</td><td>Randygitty BNGZR-C</td><td>Charlie (3)</td><td class='num'>52,613</td><td class='num'>692.28</td></tr><tr><td class='num'>42</td><td>Chuggin BNGZR</td><td>Bravo (2)</td><td class='num'>51,972</td><td class='num'>683.84</td></tr><tr><td class='num'>43</td><td>Kadri_BNGZR</td><td>Bravo (2)</td><td class='num'>51,797</td><td class='num'>681.54</td></tr><tr><td class='num'>44</td><td>Abby Normal BNGZR</td><td>Bravo (2)</td><td class='num'>51,599</td><td class='num'>678.93</td></tr><tr><td class='num'>45</td><td>Joey7 bngzr</td><td>Bravo (2)</td><td class='num'>51,335</td><td class='num'>675.46</td></tr><tr><td class='num'>46</td><td>Barad BNGZR</td><td>Bravo (2)</td><td class='num'>51,108</td><td class='num'>672.47</td></tr><tr><td class='num'>47</td><td>Trainrunner BNGZR B</td><td>Bravo (2)</td><td class='num'>50,485</td><td class='num'>664.28</td></tr><tr><td class='num'>48</td><td>Team Magnum (P)</td><td>Charlie (3)</td><td class='num'>49,941</td><td class='num'>657.12</td></tr><tr><td class='num'>49</td><td>Milos  bngzr</td><td>Bravo (2)</td><td class='num'>49,821</td><td class='num'>655.54</td></tr><tr><td class='num'>50</td><td>Homer 68 (P)</td><td>Bravo (2)</td><td class='num'>49,676</td><td class='num'>653.63</td></tr><tr><td class='num'>51</td><td>Staffs Rail BNGZR</td><td>Bravo (2)</td><td class='num'>49,473</td><td class='num'>650.96</td></tr><tr><td class='num'>52</td><td>Cookie George BNGZR</td><td>Bravo (2)</td><td class='num'>48,069</td><td class='num'>632.49</td></tr><tr><td class='num'>53</td><td>ThunderOne BNGZR</td><td>Charlie (3)</td><td class='num'>48,060</td><td class='num'>632.37</td></tr><tr><td class='num'>54</td><td>steez BNGZR</td><td>Charlie (3)</td><td class='num'>47,396</td><td class='num'>623.63</td></tr><tr><td class='num'>55</td><td>SackOHammers BNGZR</td><td>Charlie (3)</td><td class='num'>44,681</td><td class='num'>587.91</td></tr><tr><td class='num'>56</td><td>Fets (P)</td><td>Charlie (3)</td><td class='num'>44,003</td><td class='num'>578.99</td></tr><tr><td class='num'>57</td><td>om4c BNGZR</td><td>Charlie (3)</td><td class='num'>43,884</td><td class='num'>577.42</td></tr><tr><td class='num'>58</td><td>GreatGbe BNGZR</td><td>Charlie (3)</td><td class='num'>43,851</td><td class='num'>576.99</td></tr><tr><td class='num'>59</td><td>Shedevil bngzr</td><td>Charlie (3)</td><td class='num'>43,640</td><td class='num'>574.21</td></tr><tr><td class='num'>60</td><td>Bemelino GZR</td><td>Charlie (3)</td><td class='num'>43,357</td><td class='num'>570.49</td></tr><tr><td class='num'>61</td><td>OJ 12 BNGZR-B</td><td>Charlie (3)</td><td class='num'>43,105</td><td class='num'>567.17</td></tr><tr><td class='num'>62</td><td>PierdziLok BNGZR</td><td>Echo (5)</td><td class='num'>42,264</td><td class='num'>556.11</td></tr><tr><td class='num'>63</td><td>Casey Jones BNGZR</td><td>Charlie (3)</td><td class='num'>41,765</td><td class='num'>549.54</td></tr><tr><td class='num'>64</td><td>H-Shoe Curve BNGZR</td><td>Charlie (3)</td><td class='num'>41,711</td><td class='num'>548.83</td></tr><tr><td class='num'>65</td><td>Cornelius V. BNGZR</td><td>Charlie (3)</td><td class='num'>41,669</td><td class='num'>548.28</td></tr><tr><td class='num'>66</td><td>Screw Loose BNGZR</td><td>Charlie (3)</td><td class='num'>40,868</td><td class='num'>537.74</td></tr><tr><td class='num'>67</td><td>DieselBob BNGZR</td><td>Charlie (3)</td><td class='num'>40,701</td><td class='num'>535.54</td></tr><tr><td class='num'>68</td><td>SIR R.P. BNGZR</td><td>Charlie (3)</td><td class='num'>40,378</td><td class='num'>531.29</td></tr><tr><td class='num'>69</td><td>Wizdumb (P)</td><td>Charlie (3)</td><td class='num'>40,081</td><td class='num'>527.38</td></tr><tr><td class='num'>70</td><td>WMATA BNGZR-C</td><td>Charlie (3)</td><td class='num'>39,965</td><td class='num'>525.86</td></tr><tr><td class='num'>71</td><td>Barking Frog BNGZR</td><td>Delta (4)</td><td class='num'>39,524</td><td class='num'>520.05</td></tr><tr><td class='num'>72</td><td>Railrunner bngzr</td><td>Charlie (3)</td><td class='num'>39,507</td><td class='num'>519.83</td></tr><tr><td class='num'>73</td><td>hromoplast BNGZR</td><td>Charlie (3)</td><td class='num'>38,710</td><td class='num'>509.34</td></tr><tr><td class='num'>74</td><td>Rawne BNGZR</td><td>Charlie (3)</td><td class='num'>38,596</td><td class='num'>507.84</td></tr><tr><td class='num'>75</td><td>aaadamaa bngzr</td><td>Delta (4)</td><td class='num'>36,712</td><td class='num'>483.05</td></tr><tr><td class='num'>76</td><td>Am Yisrael Chai BNGZ</td><td>Delta (4)</td><td class='num'>36,104</td><td class='num'>475.05</td></tr><tr><td class='num'>77</td><td>Lexus BNGZR</td><td>Charlie (3)</td><td class='num'>35,533</td><td class='num'>467.54</td></tr><tr><td class='num'>78</td><td>Le Frique BNGZR</td><td>Echo (5)</td><td class='num'>33,897</td><td class='num'>446.01</td></tr><tr><td class='num'>79</td><td>MentalFloss BNGZR</td><td>Delta (4)</td><td class='num'>32,085</td><td class='num'>422.17</td></tr><tr><td class='num'>80</td><td>istan938 BNGZR</td><td>Delta (4)</td><td class='num'>32,067</td><td class='num'>421.93</td></tr><tr><td class='num'>81</td><td>mc4martyc BNGZR</td><td>Delta (4)</td><td class='num'>31,824</td><td class='num'>418.74</td></tr><tr><td class='num'>82</td><td>Mind in a box BNGZR</td><td>Delta (4)</td><td class='num'>31,780</td><td class='num'>418.16</td></tr><tr><td class='num'>83</td><td>Alfingore_BNGZR</td><td>Delta (4)</td><td class='num'>30,974</td><td class='num'>407.55</td></tr><tr><td class='num'>84</td><td>Rodolfo BNGZR Brasil</td><td>Delta (4)</td><td class='num'>30,743</td><td class='num'>404.51</td></tr><tr><td class='num'>85</td><td>Punchinello BNGZR</td><td>Echo (5)</td><td class='num'>30,083</td><td class='num'>395.83</td></tr><tr><td class='num'>86</td><td>LKPIX (P)</td><td>Delta (4)</td><td class='num'>29,294</td><td class='num'>385.45</td></tr><tr><td class='num'>87</td><td>Drbear_BNGZR</td><td>Delta (4)</td><td class='num'>28,877</td><td class='num'>379.96</td></tr><tr><td class='num'>88</td><td>iTrain76 BNGZR Delta</td><td>Delta (4)</td><td class='num'>28,635</td><td class='num'>376.78</td></tr><tr><td class='num'>89</td><td>Silverstone BNGZR</td><td>Delta (4)</td><td class='num'>26,825</td><td class='num'>352.96</td></tr><tr><td class='num'>90</td><td>Roberts BNGZR</td><td>Delta (4)</td><td class='num'>25,083</td><td class='num'>330.04</td></tr><tr><td class='num'>91</td><td>RSB Rails BNGZR</td><td>Delta (4)</td><td class='num'>23,370</td><td class='num'>307.50</td></tr><tr><td class='num'>92</td><td>Spike49er Bngrz05</td><td>Delta (4)</td><td class='num'>22,897</td><td class='num'>301.28</td></tr><tr><td class='num'>93</td><td>Hyperloop BNGZR</td><td>Delta (4)</td><td class='num'>22,511</td><td class='num'>296.20</td></tr><tr><td class='num'>94</td><td>Big Ern007 BNGZR</td><td>Delta (4)</td><td class='num'>21,704</td><td class='num'>285.58</td></tr><tr><td class='num'>95</td><td>Dol.j BNGZR</td><td>Delta (4)</td><td class='num'>21,251</td><td class='num'>279.62</td></tr><tr><td class='num'>96</td><td>111MCH111_BNGZR_D</td><td>Delta (4)</td><td class='num'>20,528</td><td class='num'>270.11</td></tr><tr><td class='num'>97</td><td>coot_BNGZR</td><td>Delta (4)</td><td class='num'>19,277</td><td class='num'>253.65</td></tr><tr><td class='num'>98</td><td>SMOKE-CONDUCTOR-GZR</td><td>Echo (5)</td><td class='num'>18,400</td><td class='num'>242.10</td></tr><tr><td class='num'>99</td><td>GZR - das411</td><td>Delta (4)</td><td class='num'>18,392</td><td class='num'>242.00</td></tr><tr><td class='num'>100</td><td>Vanderbuilt BNGZR</td><td>Echo (5)</td><td class='num'>18,324</td><td class='num'>241.10</td></tr><tr><td class='num'>101</td><td>tRainman bngzr</td><td>Echo (5)</td><td class='num'>17,539</td><td class='num'>230.78</td></tr><tr><td class='num'>102</td><td>Starrider BNGZRO5</td><td>Echo (5)</td><td class='num'>17,094</td><td class='num'>224.92</td></tr><tr><td class='num'>103</td><td>MooPing BNGZR</td><td>Echo (5)</td><td class='num'>16,188</td><td class='num'>213.00</td></tr><tr><td class='num'>104</td><td>Adam BNGZR</td><td>Echo (5)</td><td class='num'>15,559</td><td class='num'>204.72</td></tr><tr><td class='num'>105</td><td>IndyPete BNGZR</td><td>Echo (5)</td><td class='num'>14,958</td><td class='num'>196.82</td></tr><tr><td class='num'>106</td><td>Leo_Prime_BNGZR</td><td>Echo (5)</td><td class='num'>13,903</td><td class='num'>182.93</td></tr><tr><td class='num'>107</td><td>MillsieBNGZR</td><td>Echo (5)</td><td class='num'>13,788</td><td class='num'>181.42</td></tr><tr><td class='num'>108</td><td>Freaky BNGZR</td><td>Foxtrot (6)</td><td class='num'>11,060</td><td class='num'>145.53</td></tr><tr><td class='num'>109</td><td>DolBKK BNGZR</td><td>Echo (5)</td><td class='num'>10,799</td><td class='num'>142.09</td></tr><tr><td class='num'>110</td><td>RatPacker BNGZR</td><td>Echo (5)</td><td class='num'>10,345</td><td class='num'>136.12</td></tr><tr><td class='num'>111</td><td>Jiroo BNGZR</td><td>Echo (5)</td><td class='num'>10,221</td><td class='num'>134.49</td></tr><tr><td class='num'>112</td><td>Deacon BNGZR</td><td>Foxtrot (6)</td><td class='num'>8,485</td><td class='num'>111.64</td></tr><tr><td class='num'>113</td><td>Ajith2024 BNGZR</td><td>Echo (5)</td><td class='num'>8,200</td><td class='num'>107.89</td></tr><tr><td class='num'>114</td><td>Ugly seal 8NG2R</td><td>Echo (5)</td><td class='num'>7,974</td><td class='num'>104.92</td></tr><tr><td class='num'>115</td><td>KOMANDANT BNGZR</td><td>Foxtrot (6)</td><td class='num'>4,940</td><td class='num'>65.00</td></tr><tr><td class='num'>116</td><td>happy to be me</td><td>Foxtrot (6)</td><td class='num'>4,109</td><td class='num'>54.07</td></tr><tr><td class='num'>117</td><td>Klauss BNGZR</td><td>Foxtrot (6)</td><td class='num'>2,440</td><td class='num'>32.10</td></tr><tr><td class='num'>118</td><td>KEL Pac</td><td>Foxtrot (6)</td><td class='num'>477</td><td class='num'>6.28</td></tr><tr><td class='num'>119</td><td>GHOST RIDER</td><td>Hotel (8)</td><td class='num'>8</td><td class='num'>0.10</td></tr><tr><td class='num'>120</td><td>A9X 5.0</td><td>—</td><td class='num'>0</td><td class='num'>0.00</td></tr><tr><td class='num'>121</td><td>AmarNadh</td><td>—</td><td class='num'>0</td><td class='num'>0.00</td></tr><tr><td class='num'>122</td><td>Chris 12398</td><td>—</td><td class='num'>0</td><td class='num'>0.00</td></tr><tr><td class='num'>123</td><td>Chuggin Along (P)</td><td>Hotel (8)</td><td class='num'>0</td><td class='num'>0.00</td></tr><tr><td class='num'>124</td><td>CP Rail King (P)</td><td>Charlie (3)</td><td class='num'>0</td><td class='num'>0.00</td></tr><tr><td class='num'>125</td><td>CPT. Barboosa</td><td>—</td><td class='num'>0</td><td class='num'>0.00</td></tr><tr><td class='num'>126</td><td>Deibiddo (P)</td><td>Hotel (8)</td><td class='num'>0</td><td class='num'>0.00</td></tr><tr><td class='num'>127</td><td>EMPIRE_BNGZR</td><td>—</td><td class='num'>0</td><td class='num'>0.00</td></tr><tr><td class='num'>128</td><td>Galman (P)</td><td>Hotel (8)</td><td class='num'>0</td><td class='num'>0.00</td></tr><tr><td class='num'>129</td><td>gothic rose BNGZR</td><td>—</td><td class='num'>0</td><td class='num'>0.00</td></tr><tr><td class='num'>130</td><td>Juggernaut (P)</td><td>—</td><td class='num'>0</td><td class='num'>0.00</td></tr><tr><td class='num'>131</td><td>LakeBH (P)</td><td>—</td><td class='num'>0</td><td class='num'>0.00</td></tr><tr><td class='num'>132</td><td>McBadger Freight (P)</td><td>Alpha (1)</td><td class='num'>0</td><td class='num'>0.00</td></tr><tr><td class='num'>133</td><td>Mullet Militia (P)</td><td>Foxtrot (6)</td><td class='num'>0</td><td class='num'>0.00</td></tr><tr><td class='num'>134</td><td>Pauliedon</td><td>—</td><td class='num'>0</td><td class='num'>0.00</td></tr><tr><td class='num'>135</td><td>Rail Rider (P)</td><td>—</td><td class='num'>0</td><td class='num'>0.00</td></tr><tr><td class='num'>136</td><td>Rusty (P)</td><td>—</td><td class='num'>0</td><td class='num'>0.00</td></tr><tr><td class='num'>137</td><td>Sherri Dee (P)</td><td>—</td><td class='num'>0</td><td class='num'>0.00</td></tr><tr><td class='num'>138</td><td>Snail Old Account</td><td>—</td><td class='num'>0</td><td class='num'>0.00</td></tr><tr><td class='num'>139</td><td>Speeding Snail</td><td>—</td><td class='num'>0</td><td class='num'>0.00</td></tr><tr><td class='num'>140</td><td>ThunderOne (P)</td><td>Alpha (1)</td><td class='num'>0</td><td class='num'>0.00</td></tr><tr><td class='num'>141</td><td>Vick (P)</td><td>Hotel (8)</td><td class='num'>0</td><td class='num'>0.00</td></tr><tr><td class='num'>142</td><td>Wiserman BNGZR E</td><td>—</td><td class='num'>0</td><td class='num'>0.00</td></tr><tr><td class='num'>143</td><td>Zombies Alive NYC_RR</td><td>—</td><td class='num'>0</td><td class='num'>0.00</td></tr></tbody></table>
+<div class='pagehead'><h2>Season standings</h2><p class='sub'>143 roster spots · scored days 2026-08-31 to 2026-11-14 · the bar under each total shows it relative to the leader, coloured by union</p></div><div class='panel'><div class='scroll-x'><table><thead><tr><th class='num'>#</th><th>Name</th><th>Union</th><th class='num'>Season total</th><th class='num'>Daily average</th></tr></thead><tbody><tr><td class='rank'><span class='medal m1'>1</span></td><td class='name'>Angel rain</td><td><span class='ub uc-3'><span class='un'>Charlie</span> 3</span></td><td class='num scale uc-3'><span class='strong'>184,109</span><span class='bar-line'><i style='--w:100.0%'></i></span></td><td class='num'>2,422.49</td></tr><tr><td class='rank'><span class='medal m2'>2</span></td><td class='name'>VooDooBuntu BNGZR</td><td><span class='ub uc-1'><span class='un'>Alpha</span> 1</span></td><td class='num scale uc-1'><span class='strong'>113,833</span><span class='bar-line'><i style='--w:61.8%'></i></span></td><td class='num'>1,497.80</td></tr><tr><td class='rank'><span class='medal m3'>3</span></td><td class='name'>Ruby on Rails BNGZR</td><td><span class='ub uc-3'><span class='un'>Charlie</span> 3</span></td><td class='num scale uc-3'><span class='strong'>107,398</span><span class='bar-line'><i style='--w:58.3%'></i></span></td><td class='num'>1,413.13</td></tr><tr><td class='rank'>4</td><td class='name'>Coffee_fan BNGZR</td><td><span class='ub uc-1'><span class='un'>Alpha</span> 1</span></td><td class='num scale uc-1'><span class='strong'>106,452</span><span class='bar-line'><i style='--w:57.8%'></i></span></td><td class='num'>1,400.68</td></tr><tr><td class='rank'>5</td><td class='name'>TheTrainMan-BNGZR-A</td><td><span class='ub uc-1'><span class='un'>Alpha</span> 1</span></td><td class='num scale uc-1'><span class='strong'>92,462</span><span class='bar-line'><i style='--w:50.2%'></i></span></td><td class='num'>1,216.61</td></tr><tr><td class='rank'>6</td><td class='name'>i786533 (P)</td><td><span class='ub uc-1'><span class='un'>Alpha</span> 1</span></td><td class='num scale uc-1'><span class='strong'>91,292</span><span class='bar-line'><i style='--w:49.6%'></i></span></td><td class='num'>1,201.21</td></tr><tr><td class='rank'>7</td><td class='name'>iSeven77 BNGZR01</td><td><span class='ub uc-1'><span class='un'>Alpha</span> 1</span></td><td class='num scale uc-1'><span class='strong'>87,887</span><span class='bar-line'><i style='--w:47.7%'></i></span></td><td class='num'>1,156.41</td></tr><tr><td class='rank'>8</td><td class='name'>iSeven7 BNGZR01</td><td><span class='ub uc-1'><span class='un'>Alpha</span> 1</span></td><td class='num scale uc-1'><span class='strong'>87,329</span><span class='bar-line'><i style='--w:47.4%'></i></span></td><td class='num'>1,149.07</td></tr><tr><td class='rank'>9</td><td class='name'>Matrix Total (P)</td><td><span class='ub uc-1'><span class='un'>Alpha</span> 1</span></td><td class='num scale uc-1'><span class='strong'>86,228</span><span class='bar-line'><i style='--w:46.8%'></i></span></td><td class='num'>1,134.58</td></tr><tr><td class='rank'>10</td><td class='name'>Pemulwuy BNGZR</td><td><span class='ub uc-1'><span class='un'>Alpha</span> 1</span></td><td class='num scale uc-1'><span class='strong'>85,751</span><span class='bar-line'><i style='--w:46.6%'></i></span></td><td class='num'>1,128.30</td></tr><tr><td class='rank'>11</td><td class='name'>Michaels Corp BNGZR</td><td><span class='ub uc-1'><span class='un'>Alpha</span> 1</span></td><td class='num scale uc-1'><span class='strong'>80,777</span><span class='bar-line'><i style='--w:43.9%'></i></span></td><td class='num'>1,062.86</td></tr><tr><td class='rank'>12</td><td class='name'>Mihalj BNGZR01</td><td><span class='ub uc-1'><span class='un'>Alpha</span> 1</span></td><td class='num scale uc-1'><span class='strong'>79,181</span><span class='bar-line'><i style='--w:43.0%'></i></span></td><td class='num'>1,041.86</td></tr><tr><td class='rank'>13</td><td class='name'>CP_RAIL_KING_BNGZR</td><td><span class='ub uc-2'><span class='un'>Bravo</span> 2</span></td><td class='num scale uc-2'><span class='strong'>77,360</span><span class='bar-line'><i style='--w:42.0%'></i></span></td><td class='num'>1,017.89</td></tr><tr><td class='rank'>14</td><td class='name'>Shyam Sundar BNGZR</td><td><span class='ub uc-1'><span class='un'>Alpha</span> 1</span></td><td class='num scale uc-1'><span class='strong'>76,060</span><span class='bar-line'><i style='--w:41.3%'></i></span></td><td class='num'>1,000.79</td></tr><tr><td class='rank'>15</td><td class='name'>Eor137 bngzr</td><td><span class='ub uc-1'><span class='un'>Alpha</span> 1</span></td><td class='num scale uc-1'><span class='strong'>74,406</span><span class='bar-line'><i style='--w:40.4%'></i></span></td><td class='num'>979.03</td></tr><tr><td class='rank'>16</td><td class='name'>Palis078</td><td><span class='ub uc-1'><span class='un'>Alpha</span> 1</span></td><td class='num scale uc-1'><span class='strong'>73,763</span><span class='bar-line'><i style='--w:40.1%'></i></span></td><td class='num'>970.57</td></tr><tr><td class='rank'>17</td><td class='name'>SourGrapeWhine BNGZR</td><td><span class='ub uc-1'><span class='un'>Alpha</span> 1</span></td><td class='num scale uc-1'><span class='strong'>73,119</span><span class='bar-line'><i style='--w:39.7%'></i></span></td><td class='num'>962.09</td></tr><tr><td class='rank'>18</td><td class='name'>L_S_V</td><td><span class='ub uc-1'><span class='un'>Alpha</span> 1</span></td><td class='num scale uc-1'><span class='strong'>72,849</span><span class='bar-line'><i style='--w:39.6%'></i></span></td><td class='num'>958.54</td></tr><tr><td class='rank'>19</td><td class='name'>PatOKanada BNGZR</td><td><span class='ub uc-1'><span class='un'>Alpha</span> 1</span></td><td class='num scale uc-1'><span class='strong'>72,128</span><span class='bar-line'><i style='--w:39.2%'></i></span></td><td class='num'>949.05</td></tr><tr><td class='rank'>20</td><td class='name'>Vladankos (P)</td><td><span class='ub uc-1'><span class='un'>Alpha</span> 1</span></td><td class='num scale uc-1'><span class='strong'>70,139</span><span class='bar-line'><i style='--w:38.1%'></i></span></td><td class='num'>922.88</td></tr><tr><td class='rank'>21</td><td class='name'>M-Race80 BNGZR</td><td><span class='ub uc-1'><span class='un'>Alpha</span> 1</span></td><td class='num scale uc-1'><span class='strong'>70,084</span><span class='bar-line'><i style='--w:38.1%'></i></span></td><td class='num'>922.16</td></tr><tr><td class='rank'>22</td><td class='name'>NemesisOfFun BNGZR A</td><td><span class='ub uc-1'><span class='un'>Alpha</span> 1</span></td><td class='num scale uc-1'><span class='strong'>70,062</span><span class='bar-line'><i style='--w:38.1%'></i></span></td><td class='num'>921.87</td></tr><tr><td class='rank'>23</td><td class='name'>LargeM BNGZR</td><td><span class='ub uc-1'><span class='un'>Alpha</span> 1</span></td><td class='num scale uc-1'><span class='strong'>66,863</span><span class='bar-line'><i style='--w:36.3%'></i></span></td><td class='num'>879.78</td></tr><tr><td class='rank'>24</td><td class='name'>Mamik_bngzr</td><td><span class='ub uc-1'><span class='un'>Alpha</span> 1</span></td><td class='num scale uc-1'><span class='strong'>62,434</span><span class='bar-line'><i style='--w:33.9%'></i></span></td><td class='num'>821.50</td></tr><tr><td class='rank'>25</td><td class='name'>CPR_Rail_CANADA_BNGZ</td><td><span class='ub uc-2'><span class='un'>Bravo</span> 2</span></td><td class='num scale uc-2'><span class='strong'>61,565</span><span class='bar-line'><i style='--w:33.4%'></i></span></td><td class='num'>810.07</td></tr><tr><td class='rank'>26</td><td class='name'>Mindgamers (P)</td><td><span class='ub uc-1'><span class='un'>Alpha</span> 1</span></td><td class='num scale uc-1'><span class='strong'>61,337</span><span class='bar-line'><i style='--w:33.3%'></i></span></td><td class='num'>807.07</td></tr><tr><td class='rank'>27</td><td class='name'>Shahar BNGZR</td><td><span class='ub uc-1'><span class='un'>Alpha</span> 1</span></td><td class='num scale uc-1'><span class='strong'>61,322</span><span class='bar-line'><i style='--w:33.3%'></i></span></td><td class='num'>806.87</td></tr><tr><td class='rank'>28</td><td class='name'>Melanie BNGZR</td><td><span class='ub uc-2'><span class='un'>Bravo</span> 2</span></td><td class='num scale uc-2'><span class='strong'>60,745</span><span class='bar-line'><i style='--w:33.0%'></i></span></td><td class='num'>799.28</td></tr><tr><td class='rank'>29</td><td class='name'>Waisting Time BNGZR</td><td><span class='ub uc-2'><span class='un'>Bravo</span> 2</span></td><td class='num scale uc-2'><span class='strong'>59,801</span><span class='bar-line'><i style='--w:32.5%'></i></span></td><td class='num'>786.86</td></tr><tr><td class='rank'>30</td><td class='name'>Capt Obvious</td><td><span class='ub uc-1'><span class='un'>Alpha</span> 1</span></td><td class='num scale uc-1'><span class='strong'>59,652</span><span class='bar-line'><i style='--w:32.4%'></i></span></td><td class='num'>784.89</td></tr><tr><td class='rank'>31</td><td class='name'>emacom BNGZR</td><td><span class='ub uc-2'><span class='un'>Bravo</span> 2</span></td><td class='num scale uc-2'><span class='strong'>59,560</span><span class='bar-line'><i style='--w:32.4%'></i></span></td><td class='num'>783.68</td></tr><tr><td class='rank'>32</td><td class='name'>Sir Toppem Hat (P)</td><td><span class='ub uc-2'><span class='un'>Bravo</span> 2</span></td><td class='num scale uc-2'><span class='strong'>59,442</span><span class='bar-line'><i style='--w:32.3%'></i></span></td><td class='num'>782.13</td></tr><tr><td class='rank'>33</td><td class='name'>Pirulos BNGZR</td><td><span class='ub uc-2'><span class='un'>Bravo</span> 2</span></td><td class='num scale uc-2'><span class='strong'>58,568</span><span class='bar-line'><i style='--w:31.8%'></i></span></td><td class='num'>770.63</td></tr><tr><td class='rank'>34</td><td class='name'>Jenuine BNGZR</td><td><span class='ub uc-2'><span class='un'>Bravo</span> 2</span></td><td class='num scale uc-2'><span class='strong'>58,412</span><span class='bar-line'><i style='--w:31.7%'></i></span></td><td class='num'>768.58</td></tr><tr><td class='rank'>35</td><td class='name'>Red BNGZR</td><td><span class='ub uc-2'><span class='un'>Bravo</span> 2</span></td><td class='num scale uc-2'><span class='strong'>58,213</span><span class='bar-line'><i style='--w:31.6%'></i></span></td><td class='num'>765.96</td></tr><tr><td class='rank'>36</td><td class='name'>BIG DAWG BNGZR ALPHA</td><td><span class='ub uc-4'><span class='un'>Delta</span> 4</span></td><td class='num scale uc-4'><span class='strong'>57,359</span><span class='bar-line'><i style='--w:31.2%'></i></span></td><td class='num'>754.72</td></tr><tr><td class='rank'>37</td><td class='name'>Bacardi (P)</td><td><span class='ub uc-2'><span class='un'>Bravo</span> 2</span></td><td class='num scale uc-2'><span class='strong'>55,866</span><span class='bar-line'><i style='--w:30.3%'></i></span></td><td class='num'>735.08</td></tr><tr><td class='rank'>38</td><td class='name'>Chxken BNGZR</td><td><span class='ub uc-2'><span class='un'>Bravo</span> 2</span></td><td class='num scale uc-2'><span class='strong'>54,008</span><span class='bar-line'><i style='--w:29.3%'></i></span></td><td class='num'>710.63</td></tr><tr><td class='rank'>39</td><td class='name'>Zipper BNGZR</td><td><span class='ub uc-2'><span class='un'>Bravo</span> 2</span></td><td class='num scale uc-2'><span class='strong'>53,646</span><span class='bar-line'><i style='--w:29.1%'></i></span></td><td class='num'>705.87</td></tr><tr><td class='rank'>40</td><td class='name'>Thunder1 BNGZR</td><td><span class='ub uc-2'><span class='un'>Bravo</span> 2</span></td><td class='num scale uc-2'><span class='strong'>53,348</span><span class='bar-line'><i style='--w:29.0%'></i></span></td><td class='num'>701.95</td></tr><tr><td class='rank'>41</td><td class='name'>Randygitty BNGZR-C</td><td><span class='ub uc-3'><span class='un'>Charlie</span> 3</span></td><td class='num scale uc-3'><span class='strong'>52,613</span><span class='bar-line'><i style='--w:28.6%'></i></span></td><td class='num'>692.28</td></tr><tr><td class='rank'>42</td><td class='name'>Chuggin BNGZR</td><td><span class='ub uc-2'><span class='un'>Bravo</span> 2</span></td><td class='num scale uc-2'><span class='strong'>51,972</span><span class='bar-line'><i style='--w:28.2%'></i></span></td><td class='num'>683.84</td></tr><tr><td class='rank'>43</td><td class='name'>Kadri_BNGZR</td><td><span class='ub uc-2'><span class='un'>Bravo</span> 2</span></td><td class='num scale uc-2'><span class='strong'>51,797</span><span class='bar-line'><i style='--w:28.1%'></i></span></td><td class='num'>681.54</td></tr><tr><td class='rank'>44</td><td class='name'>Abby Normal BNGZR</td><td><span class='ub uc-2'><span class='un'>Bravo</span> 2</span></td><td class='num scale uc-2'><span class='strong'>51,599</span><span class='bar-line'><i style='--w:28.0%'></i></span></td><td class='num'>678.93</td></tr><tr><td class='rank'>45</td><td class='name'>Joey7 bngzr</td><td><span class='ub uc-2'><span class='un'>Bravo</span> 2</span></td><td class='num scale uc-2'><span class='strong'>51,335</span><span class='bar-line'><i style='--w:27.9%'></i></span></td><td class='num'>675.46</td></tr><tr><td class='rank'>46</td><td class='name'>Barad BNGZR</td><td><span class='ub uc-2'><span class='un'>Bravo</span> 2</span></td><td class='num scale uc-2'><span class='strong'>51,108</span><span class='bar-line'><i style='--w:27.8%'></i></span></td><td class='num'>672.47</td></tr><tr><td class='rank'>47</td><td class='name'>Trainrunner BNGZR B</td><td><span class='ub uc-2'><span class='un'>Bravo</span> 2</span></td><td class='num scale uc-2'><span class='strong'>50,485</span><span class='bar-line'><i style='--w:27.4%'></i></span></td><td class='num'>664.28</td></tr><tr><td class='rank'>48</td><td class='name'>Team Magnum (P)</td><td><span class='ub uc-3'><span class='un'>Charlie</span> 3</span></td><td class='num scale uc-3'><span class='strong'>49,941</span><span class='bar-line'><i style='--w:27.1%'></i></span></td><td class='num'>657.12</td></tr><tr><td class='rank'>49</td><td class='name'>Milos  bngzr</td><td><span class='ub uc-2'><span class='un'>Bravo</span> 2</span></td><td class='num scale uc-2'><span class='strong'>49,821</span><span class='bar-line'><i style='--w:27.1%'></i></span></td><td class='num'>655.54</td></tr><tr><td class='rank'>50</td><td class='name'>Homer 68 (P)</td><td><span class='ub uc-2'><span class='un'>Bravo</span> 2</span></td><td class='num scale uc-2'><span class='strong'>49,676</span><span class='bar-line'><i style='--w:27.0%'></i></span></td><td class='num'>653.63</td></tr><tr><td class='rank'>51</td><td class='name'>Staffs Rail BNGZR</td><td><span class='ub uc-2'><span class='un'>Bravo</span> 2</span></td><td class='num scale uc-2'><span class='strong'>49,473</span><span class='bar-line'><i style='--w:26.9%'></i></span></td><td class='num'>650.96</td></tr><tr><td class='rank'>52</td><td class='name'>Cookie George BNGZR</td><td><span class='ub uc-2'><span class='un'>Bravo</span> 2</span></td><td class='num scale uc-2'><span class='strong'>48,069</span><span class='bar-line'><i style='--w:26.1%'></i></span></td><td class='num'>632.49</td></tr><tr><td class='rank'>53</td><td class='name'>ThunderOne BNGZR</td><td><span class='ub uc-3'><span class='un'>Charlie</span> 3</span></td><td class='num scale uc-3'><span class='strong'>48,060</span><span class='bar-line'><i style='--w:26.1%'></i></span></td><td class='num'>632.37</td></tr><tr><td class='rank'>54</td><td class='name'>steez BNGZR</td><td><span class='ub uc-3'><span class='un'>Charlie</span> 3</span></td><td class='num scale uc-3'><span class='strong'>47,396</span><span class='bar-line'><i style='--w:25.7%'></i></span></td><td class='num'>623.63</td></tr><tr><td class='rank'>55</td><td class='name'>SackOHammers BNGZR</td><td><span class='ub uc-3'><span class='un'>Charlie</span> 3</span></td><td class='num scale uc-3'><span class='strong'>44,681</span><span class='bar-line'><i style='--w:24.3%'></i></span></td><td class='num'>587.91</td></tr><tr><td class='rank'>56</td><td class='name'>Fets (P)</td><td><span class='ub uc-3'><span class='un'>Charlie</span> 3</span></td><td class='num scale uc-3'><span class='strong'>44,003</span><span class='bar-line'><i style='--w:23.9%'></i></span></td><td class='num'>578.99</td></tr><tr><td class='rank'>57</td><td class='name'>om4c BNGZR</td><td><span class='ub uc-3'><span class='un'>Charlie</span> 3</span></td><td class='num scale uc-3'><span class='strong'>43,884</span><span class='bar-line'><i style='--w:23.8%'></i></span></td><td class='num'>577.42</td></tr><tr><td class='rank'>58</td><td class='name'>GreatGbe BNGZR</td><td><span class='ub uc-3'><span class='un'>Charlie</span> 3</span></td><td class='num scale uc-3'><span class='strong'>43,851</span><span class='bar-line'><i style='--w:23.8%'></i></span></td><td class='num'>576.99</td></tr><tr><td class='rank'>59</td><td class='name'>Shedevil bngzr</td><td><span class='ub uc-3'><span class='un'>Charlie</span> 3</span></td><td class='num scale uc-3'><span class='strong'>43,640</span><span class='bar-line'><i style='--w:23.7%'></i></span></td><td class='num'>574.21</td></tr><tr><td class='rank'>60</td><td class='name'>Bemelino GZR</td><td><span class='ub uc-3'><span class='un'>Charlie</span> 3</span></td><td class='num scale uc-3'><span class='strong'>43,357</span><span class='bar-line'><i style='--w:23.5%'></i></span></td><td class='num'>570.49</td></tr><tr><td class='rank'>61</td><td class='name'>OJ 12 BNGZR-B</td><td><span class='ub uc-3'><span class='un'>Charlie</span> 3</span></td><td class='num scale uc-3'><span class='strong'>43,105</span><span class='bar-line'><i style='--w:23.4%'></i></span></td><td class='num'>567.17</td></tr><tr><td class='rank'>62</td><td class='name'>PierdziLok BNGZR</td><td><span class='ub uc-5'><span class='un'>Echo</span> 5</span></td><td class='num scale uc-5'><span class='strong'>42,264</span><span class='bar-line'><i style='--w:23.0%'></i></span></td><td class='num'>556.11</td></tr><tr><td class='rank'>63</td><td class='name'>Casey Jones BNGZR</td><td><span class='ub uc-3'><span class='un'>Charlie</span> 3</span></td><td class='num scale uc-3'><span class='strong'>41,765</span><span class='bar-line'><i style='--w:22.7%'></i></span></td><td class='num'>549.54</td></tr><tr><td class='rank'>64</td><td class='name'>H-Shoe Curve BNGZR</td><td><span class='ub uc-3'><span class='un'>Charlie</span> 3</span></td><td class='num scale uc-3'><span class='strong'>41,711</span><span class='bar-line'><i style='--w:22.7%'></i></span></td><td class='num'>548.83</td></tr><tr><td class='rank'>65</td><td class='name'>Cornelius V. BNGZR</td><td><span class='ub uc-3'><span class='un'>Charlie</span> 3</span></td><td class='num scale uc-3'><span class='strong'>41,669</span><span class='bar-line'><i style='--w:22.6%'></i></span></td><td class='num'>548.28</td></tr><tr><td class='rank'>66</td><td class='name'>Screw Loose BNGZR</td><td><span class='ub uc-3'><span class='un'>Charlie</span> 3</span></td><td class='num scale uc-3'><span class='strong'>40,868</span><span class='bar-line'><i style='--w:22.2%'></i></span></td><td class='num'>537.74</td></tr><tr><td class='rank'>67</td><td class='name'>DieselBob BNGZR</td><td><span class='ub uc-3'><span class='un'>Charlie</span> 3</span></td><td class='num scale uc-3'><span class='strong'>40,701</span><span class='bar-line'><i style='--w:22.1%'></i></span></td><td class='num'>535.54</td></tr><tr><td class='rank'>68</td><td class='name'>SIR R.P. BNGZR</td><td><span class='ub uc-3'><span class='un'>Charlie</span> 3</span></td><td class='num scale uc-3'><span class='strong'>40,378</span><span class='bar-line'><i style='--w:21.9%'></i></span></td><td class='num'>531.29</td></tr><tr><td class='rank'>69</td><td class='name'>Wizdumb (P)</td><td><span class='ub uc-3'><span class='un'>Charlie</span> 3</span></td><td class='num scale uc-3'><span class='strong'>40,081</span><span class='bar-line'><i style='--w:21.8%'></i></span></td><td class='num'>527.38</td></tr><tr><td class='rank'>70</td><td class='name'>WMATA BNGZR-C</td><td><span class='ub uc-3'><span class='un'>Charlie</span> 3</span></td><td class='num scale uc-3'><span class='strong'>39,965</span><span class='bar-line'><i style='--w:21.7%'></i></span></td><td class='num'>525.86</td></tr><tr><td class='rank'>71</td><td class='name'>Barking Frog BNGZR</td><td><span class='ub uc-4'><span class='un'>Delta</span> 4</span></td><td class='num scale uc-4'><span class='strong'>39,524</span><span class='bar-line'><i style='--w:21.5%'></i></span></td><td class='num'>520.05</td></tr><tr><td class='rank'>72</td><td class='name'>Railrunner bngzr</td><td><span class='ub uc-3'><span class='un'>Charlie</span> 3</span></td><td class='num scale uc-3'><span class='strong'>39,507</span><span class='bar-line'><i style='--w:21.5%'></i></span></td><td class='num'>519.83</td></tr><tr><td class='rank'>73</td><td class='name'>hromoplast BNGZR</td><td><span class='ub uc-3'><span class='un'>Charlie</span> 3</span></td><td class='num scale uc-3'><span class='strong'>38,710</span><span class='bar-line'><i style='--w:21.0%'></i></span></td><td class='num'>509.34</td></tr><tr><td class='rank'>74</td><td class='name'>Rawne BNGZR</td><td><span class='ub uc-3'><span class='un'>Charlie</span> 3</span></td><td class='num scale uc-3'><span class='strong'>38,596</span><span class='bar-line'><i style='--w:21.0%'></i></span></td><td class='num'>507.84</td></tr><tr><td class='rank'>75</td><td class='name'>aaadamaa bngzr</td><td><span class='ub uc-4'><span class='un'>Delta</span> 4</span></td><td class='num scale uc-4'><span class='strong'>36,712</span><span class='bar-line'><i style='--w:19.9%'></i></span></td><td class='num'>483.05</td></tr><tr><td class='rank'>76</td><td class='name'>Am Yisrael Chai BNGZ</td><td><span class='ub uc-4'><span class='un'>Delta</span> 4</span></td><td class='num scale uc-4'><span class='strong'>36,104</span><span class='bar-line'><i style='--w:19.6%'></i></span></td><td class='num'>475.05</td></tr><tr><td class='rank'>77</td><td class='name'>Lexus BNGZR</td><td><span class='ub uc-3'><span class='un'>Charlie</span> 3</span></td><td class='num scale uc-3'><span class='strong'>35,533</span><span class='bar-line'><i style='--w:19.3%'></i></span></td><td class='num'>467.54</td></tr><tr><td class='rank'>78</td><td class='name'>Le Frique BNGZR</td><td><span class='ub uc-5'><span class='un'>Echo</span> 5</span></td><td class='num scale uc-5'><span class='strong'>33,897</span><span class='bar-line'><i style='--w:18.4%'></i></span></td><td class='num'>446.01</td></tr><tr><td class='rank'>79</td><td class='name'>MentalFloss BNGZR</td><td><span class='ub uc-4'><span class='un'>Delta</span> 4</span></td><td class='num scale uc-4'><span class='strong'>32,085</span><span class='bar-line'><i style='--w:17.4%'></i></span></td><td class='num'>422.17</td></tr><tr><td class='rank'>80</td><td class='name'>istan938 BNGZR</td><td><span class='ub uc-4'><span class='un'>Delta</span> 4</span></td><td class='num scale uc-4'><span class='strong'>32,067</span><span class='bar-line'><i style='--w:17.4%'></i></span></td><td class='num'>421.93</td></tr><tr><td class='rank'>81</td><td class='name'>mc4martyc BNGZR</td><td><span class='ub uc-4'><span class='un'>Delta</span> 4</span></td><td class='num scale uc-4'><span class='strong'>31,824</span><span class='bar-line'><i style='--w:17.3%'></i></span></td><td class='num'>418.74</td></tr><tr><td class='rank'>82</td><td class='name'>Mind in a box BNGZR</td><td><span class='ub uc-4'><span class='un'>Delta</span> 4</span></td><td class='num scale uc-4'><span class='strong'>31,780</span><span class='bar-line'><i style='--w:17.3%'></i></span></td><td class='num'>418.16</td></tr><tr><td class='rank'>83</td><td class='name'>Alfingore_BNGZR</td><td><span class='ub uc-4'><span class='un'>Delta</span> 4</span></td><td class='num scale uc-4'><span class='strong'>30,974</span><span class='bar-line'><i style='--w:16.8%'></i></span></td><td class='num'>407.55</td></tr><tr><td class='rank'>84</td><td class='name'>Rodolfo BNGZR Brasil</td><td><span class='ub uc-4'><span class='un'>Delta</span> 4</span></td><td class='num scale uc-4'><span class='strong'>30,743</span><span class='bar-line'><i style='--w:16.7%'></i></span></td><td class='num'>404.51</td></tr><tr><td class='rank'>85</td><td class='name'>Punchinello BNGZR</td><td><span class='ub uc-5'><span class='un'>Echo</span> 5</span></td><td class='num scale uc-5'><span class='strong'>30,083</span><span class='bar-line'><i style='--w:16.3%'></i></span></td><td class='num'>395.83</td></tr><tr><td class='rank'>86</td><td class='name'>LKPIX (P)</td><td><span class='ub uc-4'><span class='un'>Delta</span> 4</span></td><td class='num scale uc-4'><span class='strong'>29,294</span><span class='bar-line'><i style='--w:15.9%'></i></span></td><td class='num'>385.45</td></tr><tr><td class='rank'>87</td><td class='name'>Drbear_BNGZR</td><td><span class='ub uc-4'><span class='un'>Delta</span> 4</span></td><td class='num scale uc-4'><span class='strong'>28,877</span><span class='bar-line'><i style='--w:15.7%'></i></span></td><td class='num'>379.96</td></tr><tr><td class='rank'>88</td><td class='name'>iTrain76 BNGZR Delta</td><td><span class='ub uc-4'><span class='un'>Delta</span> 4</span></td><td class='num scale uc-4'><span class='strong'>28,635</span><span class='bar-line'><i style='--w:15.6%'></i></span></td><td class='num'>376.78</td></tr><tr><td class='rank'>89</td><td class='name'>Silverstone BNGZR</td><td><span class='ub uc-4'><span class='un'>Delta</span> 4</span></td><td class='num scale uc-4'><span class='strong'>26,825</span><span class='bar-line'><i style='--w:14.6%'></i></span></td><td class='num'>352.96</td></tr><tr><td class='rank'>90</td><td class='name'>Roberts BNGZR</td><td><span class='ub uc-4'><span class='un'>Delta</span> 4</span></td><td class='num scale uc-4'><span class='strong'>25,083</span><span class='bar-line'><i style='--w:13.6%'></i></span></td><td class='num'>330.04</td></tr><tr><td class='rank'>91</td><td class='name'>RSB Rails BNGZR</td><td><span class='ub uc-4'><span class='un'>Delta</span> 4</span></td><td class='num scale uc-4'><span class='strong'>23,370</span><span class='bar-line'><i style='--w:12.7%'></i></span></td><td class='num'>307.50</td></tr><tr><td class='rank'>92</td><td class='name'>Spike49er Bngrz05</td><td><span class='ub uc-4'><span class='un'>Delta</span> 4</span></td><td class='num scale uc-4'><span class='strong'>22,897</span><span class='bar-line'><i style='--w:12.4%'></i></span></td><td class='num'>301.28</td></tr><tr><td class='rank'>93</td><td class='name'>Hyperloop BNGZR</td><td><span class='ub uc-4'><span class='un'>Delta</span> 4</span></td><td class='num scale uc-4'><span class='strong'>22,511</span><span class='bar-line'><i style='--w:12.2%'></i></span></td><td class='num'>296.20</td></tr><tr><td class='rank'>94</td><td class='name'>Big Ern007 BNGZR</td><td><span class='ub uc-4'><span class='un'>Delta</span> 4</span></td><td class='num scale uc-4'><span class='strong'>21,704</span><span class='bar-line'><i style='--w:11.8%'></i></span></td><td class='num'>285.58</td></tr><tr><td class='rank'>95</td><td class='name'>Dol.j BNGZR</td><td><span class='ub uc-4'><span class='un'>Delta</span> 4</span></td><td class='num scale uc-4'><span class='strong'>21,251</span><span class='bar-line'><i style='--w:11.5%'></i></span></td><td class='num'>279.62</td></tr><tr><td class='rank'>96</td><td class='name'>111MCH111_BNGZR_D</td><td><span class='ub uc-4'><span class='un'>Delta</span> 4</span></td><td class='num scale uc-4'><span class='strong'>20,528</span><span class='bar-line'><i style='--w:11.1%'></i></span></td><td class='num'>270.11</td></tr><tr><td class='rank'>97</td><td class='name'>coot_BNGZR</td><td><span class='ub uc-4'><span class='un'>Delta</span> 4</span></td><td class='num scale uc-4'><span class='strong'>19,277</span><span class='bar-line'><i style='--w:10.5%'></i></span></td><td class='num'>253.65</td></tr><tr><td class='rank'>98</td><td class='name'>SMOKE-CONDUCTOR-GZR</td><td><span class='ub uc-5'><span class='un'>Echo</span> 5</span></td><td class='num scale uc-5'><span class='strong'>18,400</span><span class='bar-line'><i style='--w:10.0%'></i></span></td><td class='num'>242.10</td></tr><tr><td class='rank'>99</td><td class='name'>GZR - das411</td><td><span class='ub uc-4'><span class='un'>Delta</span> 4</span></td><td class='num scale uc-4'><span class='strong'>18,392</span><span class='bar-line'><i style='--w:10.0%'></i></span></td><td class='num'>242.00</td></tr><tr><td class='rank'>100</td><td class='name'>Vanderbuilt BNGZR</td><td><span class='ub uc-5'><span class='un'>Echo</span> 5</span></td><td class='num scale uc-5'><span class='strong'>18,324</span><span class='bar-line'><i style='--w:10.0%'></i></span></td><td class='num'>241.10</td></tr><tr><td class='rank'>101</td><td class='name'>tRainman bngzr</td><td><span class='ub uc-5'><span class='un'>Echo</span> 5</span></td><td class='num scale uc-5'><span class='strong'>17,539</span><span class='bar-line'><i style='--w:9.5%'></i></span></td><td class='num'>230.78</td></tr><tr><td class='rank'>102</td><td class='name'>Starrider BNGZRO5</td><td><span class='ub uc-5'><span class='un'>Echo</span> 5</span></td><td class='num scale uc-5'><span class='strong'>17,094</span><span class='bar-line'><i style='--w:9.3%'></i></span></td><td class='num'>224.92</td></tr><tr><td class='rank'>103</td><td class='name'>MooPing BNGZR</td><td><span class='ub uc-5'><span class='un'>Echo</span> 5</span></td><td class='num scale uc-5'><span class='strong'>16,188</span><span class='bar-line'><i style='--w:8.8%'></i></span></td><td class='num'>213.00</td></tr><tr><td class='rank'>104</td><td class='name'>Adam BNGZR</td><td><span class='ub uc-5'><span class='un'>Echo</span> 5</span></td><td class='num scale uc-5'><span class='strong'>15,559</span><span class='bar-line'><i style='--w:8.5%'></i></span></td><td class='num'>204.72</td></tr><tr><td class='rank'>105</td><td class='name'>IndyPete BNGZR</td><td><span class='ub uc-5'><span class='un'>Echo</span> 5</span></td><td class='num scale uc-5'><span class='strong'>14,958</span><span class='bar-line'><i style='--w:8.1%'></i></span></td><td class='num'>196.82</td></tr><tr><td class='rank'>106</td><td class='name'>Leo_Prime_BNGZR</td><td><span class='ub uc-5'><span class='un'>Echo</span> 5</span></td><td class='num scale uc-5'><span class='strong'>13,903</span><span class='bar-line'><i style='--w:7.6%'></i></span></td><td class='num'>182.93</td></tr><tr><td class='rank'>107</td><td class='name'>MillsieBNGZR</td><td><span class='ub uc-5'><span class='un'>Echo</span> 5</span></td><td class='num scale uc-5'><span class='strong'>13,788</span><span class='bar-line'><i style='--w:7.5%'></i></span></td><td class='num'>181.42</td></tr><tr><td class='rank'>108</td><td class='name'>Freaky BNGZR</td><td><span class='ub uc-6'><span class='un'>Foxtrot</span> 6</span></td><td class='num scale uc-6'><span class='strong'>11,060</span><span class='bar-line'><i style='--w:6.0%'></i></span></td><td class='num'>145.53</td></tr><tr><td class='rank'>109</td><td class='name'>DolBKK BNGZR</td><td><span class='ub uc-5'><span class='un'>Echo</span> 5</span></td><td class='num scale uc-5'><span class='strong'>10,799</span><span class='bar-line'><i style='--w:5.9%'></i></span></td><td class='num'>142.09</td></tr><tr><td class='rank'>110</td><td class='name'>RatPacker BNGZR</td><td><span class='ub uc-5'><span class='un'>Echo</span> 5</span></td><td class='num scale uc-5'><span class='strong'>10,345</span><span class='bar-line'><i style='--w:5.6%'></i></span></td><td class='num'>136.12</td></tr><tr><td class='rank'>111</td><td class='name'>Jiroo BNGZR</td><td><span class='ub uc-5'><span class='un'>Echo</span> 5</span></td><td class='num scale uc-5'><span class='strong'>10,221</span><span class='bar-line'><i style='--w:5.6%'></i></span></td><td class='num'>134.49</td></tr><tr><td class='rank'>112</td><td class='name'>Deacon BNGZR</td><td><span class='ub uc-6'><span class='un'>Foxtrot</span> 6</span></td><td class='num scale uc-6'><span class='strong'>8,485</span><span class='bar-line'><i style='--w:4.6%'></i></span></td><td class='num'>111.64</td></tr><tr><td class='rank'>113</td><td class='name'>Ajith2024 BNGZR</td><td><span class='ub uc-5'><span class='un'>Echo</span> 5</span></td><td class='num scale uc-5'><span class='strong'>8,200</span><span class='bar-line'><i style='--w:4.5%'></i></span></td><td class='num'>107.89</td></tr><tr><td class='rank'>114</td><td class='name'>Ugly seal 8NG2R</td><td><span class='ub uc-5'><span class='un'>Echo</span> 5</span></td><td class='num scale uc-5'><span class='strong'>7,974</span><span class='bar-line'><i style='--w:4.3%'></i></span></td><td class='num'>104.92</td></tr><tr><td class='rank'>115</td><td class='name'>KOMANDANT BNGZR</td><td><span class='ub uc-6'><span class='un'>Foxtrot</span> 6</span></td><td class='num scale uc-6'><span class='strong'>4,940</span><span class='bar-line'><i style='--w:2.7%'></i></span></td><td class='num'>65.00</td></tr><tr><td class='rank'>116</td><td class='name'>happy to be me</td><td><span class='ub uc-6'><span class='un'>Foxtrot</span> 6</span></td><td class='num scale uc-6'><span class='strong'>4,109</span><span class='bar-line'><i style='--w:2.2%'></i></span></td><td class='num'>54.07</td></tr><tr><td class='rank'>117</td><td class='name'>Klauss BNGZR</td><td><span class='ub uc-6'><span class='un'>Foxtrot</span> 6</span></td><td class='num scale uc-6'><span class='strong'>2,440</span><span class='bar-line'><i style='--w:1.3%'></i></span></td><td class='num'>32.10</td></tr><tr><td class='rank'>118</td><td class='name'>KEL Pac</td><td><span class='ub uc-6'><span class='un'>Foxtrot</span> 6</span></td><td class='num scale uc-6'><span class='strong'>477</span><span class='bar-line'><i style='--w:0.3%'></i></span></td><td class='num'>6.28</td></tr><tr><td class='rank'>119</td><td class='name'>GHOST RIDER</td><td><span class='ub uc-8'><span class='un'>Hotel</span> 8</span></td><td class='num scale uc-8'><span class='strong'>8</span><span class='bar-line'><i style='--w:0.0%'></i></span></td><td class='num'>0.10</td></tr><tr class='dim'><td class='rank'>120</td><td class='name'>A9X 5.0</td><td><span class='ub none uc-0'>—</span></td><td class='num scale uc-0'><span class='strong'>0</span><span class='bar-line'><i style='--w:0.0%'></i></span></td><td class='num'>0.00</td></tr><tr class='dim'><td class='rank'>121</td><td class='name'>AmarNadh</td><td><span class='ub none uc-0'>—</span></td><td class='num scale uc-0'><span class='strong'>0</span><span class='bar-line'><i style='--w:0.0%'></i></span></td><td class='num'>0.00</td></tr><tr class='dim'><td class='rank'>122</td><td class='name'>Chris 12398</td><td><span class='ub none uc-0'>—</span></td><td class='num scale uc-0'><span class='strong'>0</span><span class='bar-line'><i style='--w:0.0%'></i></span></td><td class='num'>0.00</td></tr><tr class='dim'><td class='rank'>123</td><td class='name'>Chuggin Along (P)</td><td><span class='ub uc-8'><span class='un'>Hotel</span> 8</span></td><td class='num scale uc-8'><span class='strong'>0</span><span class='bar-line'><i style='--w:0.0%'></i></span></td><td class='num'>0.00</td></tr><tr class='dim'><td class='rank'>124</td><td class='name'>CP Rail King (P)</td><td><span class='ub uc-3'><span class='un'>Charlie</span> 3</span></td><td class='num scale uc-3'><span class='strong'>0</span><span class='bar-line'><i style='--w:0.0%'></i></span></td><td class='num'>0.00</td></tr><tr class='dim'><td class='rank'>125</td><td class='name'>CPT. Barboosa</td><td><span class='ub none uc-0'>—</span></td><td class='num scale uc-0'><span class='strong'>0</span><span class='bar-line'><i style='--w:0.0%'></i></span></td><td class='num'>0.00</td></tr><tr class='dim'><td class='rank'>126</td><td class='name'>Deibiddo (P)</td><td><span class='ub uc-8'><span class='un'>Hotel</span> 8</span></td><td class='num scale uc-8'><span class='strong'>0</span><span class='bar-line'><i style='--w:0.0%'></i></span></td><td class='num'>0.00</td></tr><tr class='dim'><td class='rank'>127</td><td class='name'>EMPIRE_BNGZR</td><td><span class='ub none uc-0'>—</span></td><td class='num scale uc-0'><span class='strong'>0</span><span class='bar-line'><i style='--w:0.0%'></i></span></td><td class='num'>0.00</td></tr><tr class='dim'><td class='rank'>128</td><td class='name'>Galman (P)</td><td><span class='ub uc-8'><span class='un'>Hotel</span> 8</span></td><td class='num scale uc-8'><span class='strong'>0</span><span class='bar-line'><i style='--w:0.0%'></i></span></td><td class='num'>0.00</td></tr><tr class='dim'><td class='rank'>129</td><td class='name'>gothic rose BNGZR</td><td><span class='ub none uc-0'>—</span></td><td class='num scale uc-0'><span class='strong'>0</span><span class='bar-line'><i style='--w:0.0%'></i></span></td><td class='num'>0.00</td></tr><tr class='dim'><td class='rank'>130</td><td class='name'>Juggernaut (P)</td><td><span class='ub none uc-0'>—</span></td><td class='num scale uc-0'><span class='strong'>0</span><span class='bar-line'><i style='--w:0.0%'></i></span></td><td class='num'>0.00</td></tr><tr class='dim'><td class='rank'>131</td><td class='name'>LakeBH (P)</td><td><span class='ub none uc-0'>—</span></td><td class='num scale uc-0'><span class='strong'>0</span><span class='bar-line'><i style='--w:0.0%'></i></span></td><td class='num'>0.00</td></tr><tr class='dim'><td class='rank'>132</td><td class='name'>McBadger Freight (P)</td><td><span class='ub uc-1'><span class='un'>Alpha</span> 1</span></td><td class='num scale uc-1'><span class='strong'>0</span><span class='bar-line'><i style='--w:0.0%'></i></span></td><td class='num'>0.00</td></tr><tr class='dim'><td class='rank'>133</td><td class='name'>Mullet Militia (P)</td><td><span class='ub uc-6'><span class='un'>Foxtrot</span> 6</span></td><td class='num scale uc-6'><span class='strong'>0</span><span class='bar-line'><i style='--w:0.0%'></i></span></td><td class='num'>0.00</td></tr><tr class='dim'><td class='rank'>134</td><td class='name'>Pauliedon</td><td><span class='ub none uc-0'>—</span></td><td class='num scale uc-0'><span class='strong'>0</span><span class='bar-line'><i style='--w:0.0%'></i></span></td><td class='num'>0.00</td></tr><tr class='dim'><td class='rank'>135</td><td class='name'>Rail Rider (P)</td><td><span class='ub none uc-0'>—</span></td><td class='num scale uc-0'><span class='strong'>0</span><span class='bar-line'><i style='--w:0.0%'></i></span></td><td class='num'>0.00</td></tr><tr class='dim'><td class='rank'>136</td><td class='name'>Rusty (P)</td><td><span class='ub none uc-0'>—</span></td><td class='num scale uc-0'><span class='strong'>0</span><span class='bar-line'><i style='--w:0.0%'></i></span></td><td class='num'>0.00</td></tr><tr class='dim'><td class='rank'>137</td><td class='name'>Sherri Dee (P)</td><td><span class='ub none uc-0'>—</span></td><td class='num scale uc-0'><span class='strong'>0</span><span class='bar-line'><i style='--w:0.0%'></i></span></td><td class='num'>0.00</td></tr><tr class='dim'><td class='rank'>138</td><td class='name'>Snail Old Account</td><td><span class='ub none uc-0'>—</span></td><td class='num scale uc-0'><span class='strong'>0</span><span class='bar-line'><i style='--w:0.0%'></i></span></td><td class='num'>0.00</td></tr><tr class='dim'><td class='rank'>139</td><td class='name'>Speeding Snail</td><td><span class='ub none uc-0'>—</span></td><td class='num scale uc-0'><span class='strong'>0</span><span class='bar-line'><i style='--w:0.0%'></i></span></td><td class='num'>0.00</td></tr><tr class='dim'><td class='rank'>140</td><td class='name'>ThunderOne (P)</td><td><span class='ub uc-1'><span class='un'>Alpha</span> 1</span></td><td class='num scale uc-1'><span class='strong'>0</span><span class='bar-line'><i style='--w:0.0%'></i></span></td><td class='num'>0.00</td></tr><tr class='dim'><td class='rank'>141</td><td class='name'>Vick (P)</td><td><span class='ub uc-8'><span class='un'>Hotel</span> 8</span></td><td class='num scale uc-8'><span class='strong'>0</span><span class='bar-line'><i style='--w:0.0%'></i></span></td><td class='num'>0.00</td></tr><tr class='dim'><td class='rank'>142</td><td class='name'>Wiserman BNGZR E</td><td><span class='ub none uc-0'>—</span></td><td class='num scale uc-0'><span class='strong'>0</span><span class='bar-line'><i style='--w:0.0%'></i></span></td><td class='num'>0.00</td></tr><tr class='dim'><td class='rank'>143</td><td class='name'>Zombies Alive NYC_RR</td><td><span class='ub none uc-0'>—</span></td><td class='num scale uc-0'><span class='strong'>0</span><span class='bar-line'><i style='--w:0.0%'></i></span></td><td class='num'>0.00</td></tr></tbody></table></div></div>
 </main>
 <footer>
-<div class="stamp">Computed at 2026-08-19 00:49:28 UTC</div>
+<div class="stamp">Computed at 2026-08-19 01:53:16 UTC</div>
 <div>Season 2026-08-31 to 2026-11-22 · data through 2026-11-14 · 76 scored day(s)</div>
 <div class="quiet"><a href="instructions.html">How to run this</a></div>
 </footer>
