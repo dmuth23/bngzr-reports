@@ -44,7 +44,7 @@
   --u8: #3e4756;  --u8-soft: #e4e8ee;
 
   /* Sequential heat ramp for the daily matrix (single hue, light -> dark). */
-  --h1: #ecf2fc; --h2: #d6e4f9; --h3: #b9d1f4; --h4: #94b8ee;
+  --h1: #eff5fd; --h2: #d3e3fa; --h3: #aecbf5; --h4: #85afec; --h5: #5b8fe0;
 
   /* Medals for the standings podium. */
   --gold: #f2c14e; --silver: #c9cdd6; --bronze: #d9a06b; --medal-ink: #3a2f10;
@@ -77,8 +77,8 @@
     --u7: #2ee2fa;  --u7-soft: rgba(46,226,250,.11);
     --u8: #8b9bb4;  --u8-soft: rgba(139,155,180,.15);
 
-    --h1: rgba(96,165,250,.10); --h2: rgba(96,165,250,.20);
-    --h3: rgba(96,165,250,.33); --h4: rgba(96,165,250,.48);
+    --h1: rgba(96,165,250,.09); --h2: rgba(96,165,250,.20);
+    --h3: rgba(96,165,250,.34); --h4: rgba(96,165,250,.50); --h5: rgba(96,165,250,.68);
 
     --gold: #eab308; --silver: #b7bdc9; --bronze: #cf9560; --medal-ink: #241d07;
   }
@@ -372,8 +372,22 @@ tbody tr:hover td.stick { background: var(--hover); }
 
 /* ---- daily matrix -------------------------------------------------------- */
 
-/* A 2D scroll region: sticky header row and sticky name column both work. */
-.matrix-wrap { overflow: auto; max-height: 82vh; -webkit-overflow-scrolling: touch; }
+/* A 2D scroll region: sticky header row and sticky name column both work.
+
+   The height is the fiddly part. A plain 82vh put the box's bottom edge 97-169px
+   BELOW the fold at every viewport height tested - and the horizontal scrollbar
+   lives on that bottom edge, so reaching the control that scrolls the dates meant
+   first scrolling the page down to find it. Reserving the space the banner, header
+   and title actually occupy keeps the bar on screen from the moment the page loads.
+   `dvh` so mobile browser chrome is accounted for; the floor stops it collapsing to
+   nothing on a short window. */
+.matrix-wrap {
+  overflow: auto;
+  max-height: max(22rem, min(82vh, calc(100dvh - 21.5rem)));
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scrollbar-gutter: stable;
+}
 .matrix { width: auto; }
 .matrix th.date {
   writing-mode: vertical-rl;
@@ -391,6 +405,7 @@ tbody tr:hover td.stick { background: var(--hover); }
 .matrix td.h2 { background: var(--h2); }
 .matrix td.h3 { background: var(--h3); }
 .matrix td.h4 { background: var(--h4); }
+.matrix td.h5 { background: var(--h5); }
 .matrix td.z { color: var(--muted); opacity: .45; text-align: center; }
 
 /* The matrix name column carries a badge AND a name in one sticky cell, and at
@@ -696,7 +711,7 @@ footer .quiet a:hover { opacity: 1; text-decoration: underline; }
 <p><code>Roster</code>, <code>Pools</code>, <code>Roster History</code>, <code>Config</code> are yours. The engine only ever reads them.</p></div>
 </main>
 <footer>
-<div class="stamp">Computed at 2026-08-19 01:53:57 UTC</div>
+<div class="stamp">Computed at 2026-08-19 02:04:40 UTC</div>
 <div>Season 2026-06-01 to 2026-08-23 · data through 2026-08-16 · 77 scored day(s)</div>
 <div class="quiet"><a href="instructions.html">How to run this</a></div>
 </footer>
