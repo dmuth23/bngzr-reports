@@ -686,7 +686,10 @@ footer .quiet a:hover { opacity: 1; text-decoration: underline; }
 <p>A hold <strong>blocks promotion but not relegation</strong>. A held player who ranks high enough to go up simply stays put, and the P/R board says so in its Reason column rather than quietly showing &quot;stay&quot;.</p>
 <h2>Pools</h2>
 <p>A pool is a placeholder holding one roster spot for several real accounts. The pool is what appears in every report; its members never appear as themselves.</p>
-<ul><li><code>Pools</code> tab: the Pool ID and display name</li><li><code>Roster</code> tab: put that Pool ID on each member&#x27;s row</li><li><code>Roster History</code>: the <strong>pool</strong> has its own row and its own union. Members do not need one</li></ul>
+<ul><li><code>Pools</code> tab: the Pool ID and display name, plus <strong>Members</strong> and <strong>Who</strong> — two formulas</li></ul>
+<p>that list the pool&#x27;s current members. They update as you type; no run needed</p>
+<ul><li><code>Roster</code> tab: put that Pool ID on each member&#x27;s row</li><li><code>Roster History</code>: the <strong>pool</strong> has its own row and its own union. Members do not need one</li></ul>
+<p><code>Who</code> showing an em dash means the pool has no members at all, so it scores nothing. A <code>#number</code> instead of a name means that Roster row has no <strong>In-Game Name</strong> filled in — the member still counts, you just cannot see who it is until you add the name.</p>
 <p><strong>Pools cannot be created or changed after week two.</strong> That is a union rule; nothing in the software enforces it, which is exactly why it matters that people follow it.</p>
 <p><strong>Never change a member&#x27;s Pool ID mid-season.</strong> Pool membership is applied to that player&#x27;s <em>whole</em> season, not from the day you change it — so editing a Pool ID silently re-attributes every past day of their scoring to the new pool.</p>
 <hr>
@@ -722,11 +725,26 @@ footer .quiet a:hover { opacity: 1; text-decoration: underline; }
 <p>One thing to know: the shadow sheet&#x27;s roster is a <strong>copy</strong>, taken on 2026-08-18. It does not follow edits you make to the live workbook. If somebody moves union or leaves during the last week, mirror it into the shadow sheet by hand or its numbers will drift. The run reports exactly which rows disagree, so you are not hunting.</p>
 <p>After 2026-08-23 <strong>Wizdumb</strong> switches it off (one repo variable) and the <code>/summer/</code> pages come down on the next run.</p>
 <h2>Tabs the engine owns</h2>
-<p><code>P/R Proposal</code>, <code>Activity Log</code>, <code>Standings</code>, <code>Daily Scores</code>. All rewritten on every run. Do not hand-edit them; anything typed there is lost on the next press.</p>
-<p><code>Roster</code>, <code>Pools</code>, <code>Roster History</code>, <code>Config</code> are yours. The engine only ever reads them.</p></div>
+<p><code>P/R Proposal</code>, <code>Activity Log</code>, <code>Standings</code>, <code>Daily Scores</code>, <code>Preview</code>. All rewritten on every run. Do not hand-edit them; anything typed there is lost on the next press.</p>
+<p><code>Roster</code>, <code>Pools</code>, <code>Roster History</code>, <code>Config</code> are yours. The engine only ever reads them. The <code>Members</code> and <code>Who</code> columns on <code>Pools</code> are the exception the engine cannot touch: it reads that tab by position and only ever looks at columns A–D.</p>
+<h2>The Preview tab</h2>
+<p><code>Standings</code> is a photograph — it shows what the engine computed at the last press and does not move until the next one. <code>Preview</code> is the live version: change a Pool ID on the <code>Roster</code> and the pool&#x27;s member count, total, score and rank all move as you type.</p>
+<p>Read the two right-hand columns together:</p>
+<ul><li><strong>Last run</strong> — the rank the engine gave this subject at the last press</li><li><strong>Vs run</strong> — how far your edits have moved it since. Negative means it fell</li></ul>
+<p>So a pool dropping from 12th to 40th reads as <code>Last run 12</code>, <code>Vs run -28</code>, immediately, before you press anything.</p>
+<p>Three things it is not:</p>
+<ul><li>It is <strong>one-way</strong>. Nothing on it feeds the engine, the ledger, the P/R board or the site.</li></ul>
+<p>The published report always comes from the engine</p>
+<ul><li>It shows <strong>standings only</strong> — never P/R moves. Promotion, relegation, holds and the</li></ul>
+<p>edge rule stay in the engine</p>
+<ul><li>It is exact for a season of 84 days or fewer, which covers Summer entirely. Over the</li></ul>
+<p>last week of a full 91-day season it drifts slightly. <code>Vs run</code> is where you would see it</p>
+<p>Somebody <strong>added</strong> to the <code>Roster</code> since the last press is not on <code>Preview</code> yet — the tab is drawn with one row per subject at the moment it is written. Press <strong>Run Engine</strong> and they appear. Edits to people already there are live.</p>
+<p>On a fresh run with nothing edited since, every <code>Vs run</code> should read <code>0</code>.</p>
+<p>The numbers still only become real when you press <strong>Run Engine</strong>.</p></div>
 </main>
 <footer>
-<div class="stamp">Computed at 2026-08-19 18:21:56 UTC</div>
+<div class="stamp">Computed at 2026-08-20 14:07:04 UTC</div>
 <div>Season 2026-08-31 to 2026-11-22 · data through 2026-11-14 · 76 scored day(s)</div>
 <div class="quiet"><a href="instructions.html">How to run this</a></div>
 </footer>
