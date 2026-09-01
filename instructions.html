@@ -466,6 +466,8 @@ td.reason { color: var(--muted); font-size: .8rem; }
 
 /* ---- roster grid --------------------------------------------------------- */
 
+.pagehead.section, h3.section { margin-top: 2rem; }
+
 .roster-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
@@ -680,6 +682,12 @@ footer .quiet a:hover { opacity: 1; text-decoration: underline; }
 <ol><li><code>Roster</code> tab — new row: PFID, in-game name, Pool ID if they are joining a pool, Status <code>Active</code></li><li><code>Roster History</code> tab — new row with the same PFID in column A and their name in column B</li><li>Put their union in <strong>today&#x27;s column</strong></li></ol>
 <p>They score from the first day they hold a union. Nothing before that.</p>
 <p>They will not appear in any report until a capture actually shows them scoring — a brand-new player with a union but no points yet is simply not on the board.</p>
+<h2>Someone shows up who isn&#x27;t on the roster</h2>
+<p>The union is open door, so people play in it who were never added. The report site&#x27;s <strong>Roster</strong> page has a section for exactly this: <strong>Unaccounted contributors</strong> — every PFID the capture has seen that has no Roster row, with their current name, the union they last played in, first seen, last seen, and how much they&#x27;ve put up. Anyone who hasn&#x27;t shown up in over a week renders dimmed, under <strong>No longer present</strong> — probably gone for good, but not worth chasing.</p>
+<p>For each name on that list, pick one:</p>
+<ul><li><strong>They should be on the roster</strong> — add them the normal way, above</li><li><strong>They&#x27;re staying, but deliberately not on the roster</strong> — set their Status to</li></ul>
+<p><strong><code>Guest</code></strong> on the <code>Roster</code> tab (leave Pool ID blank and give them no <code>Roster History</code> row). They move to a separate <strong>Known guests</strong> section on the same page, acknowledged rather than nagging you every run, and they still never score or take a roster spot</p>
+<p>The front page shows a small count of how many are outstanding (Guests and the No longer present group don&#x27;t count towards it), linking straight to the Roster page&#x27;s list.</p>
 <h2>Somebody leaves</h2>
 <p>Set their <strong>Status</strong> on the <code>Roster</code> tab to <strong><code>Gone</code></strong> (left entirely) or <strong><code>Moved</code></strong> (went to another union). The next Run Engine writes <code>-</code> into today&#x27;s column for them and carries it forward. From that day they stop scoring, and on the P/R board they show as <strong><code>unplaced</code></strong> with no proposal — visible, but out of the promotion ladder. Verified: a player marked out mid-season keeps every point earned before that day and gains nothing after it.</p>
 <p><strong>One catch on timing:</strong> that only works if today&#x27;s column is still empty for them. If Run Engine has already been pressed today, their union is already stamped and <code>-</code> will not land until tomorrow — so they would still score today. If in doubt, <strong>type <code>-</code> in today&#x27;s column yourself as well.</strong> Doing both is harmless.</p>
@@ -756,7 +764,7 @@ footer .quiet a:hover { opacity: 1; text-decoration: underline; }
 <p>The numbers still only become real when you press <strong>Run Engine</strong>.</p></div>
 </main>
 <footer>
-<div class="stamp">Computed at 2026-09-01 17:24:01 UTC</div>
+<div class="stamp">Computed at 2026-09-01 19:24:38 UTC</div>
 <div>Season 2026-08-31 to 2026-11-22 · data through 2026-08-31 · 1 scored day(s)</div>
 <div class="quiet"><a href="instructions.html">How to run this</a></div>
 </footer>
