@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daily scores — BNGZR</title>
+<style>
+/* BNGZR league site. Inlined into every page; self-contained, system fonts only.
+   Union identity is the spine of the design: unions 1-8 are a ladder, and every
+   page colours them with the same ordered ramp - gold at the top flight fading
+   through the spectrum to slate at the bottom. Tokens come in light and dark. */
+
+:root {
+  --bg:      #f2f2ef;
+  --panel:   #ffffff;
+  --ink:     #191b21;
+  --muted:   #68707d;
+  --line:    #e4e4df;
+  --line-soft: #eeeeea;
+  --hover:   #f2f4f8;
+  --accent:  #2456c4;
+  --up:      #15803d;
+  --down:    #b42318;
+  --up-soft:   #e8f6ee;
+  --down-soft: #fdecea;
+  --headbg:  #14161b;
+  --headink: #f5f6f7;
+  --radius:  12px;
+  --shadow:  0 1px 2px rgba(20,22,27,.05), 0 4px 16px rgba(20,22,27,.05);
+
+  /* Union ladder ramp: 1 = top flight (gold) ... 8 = bottom (slate).
+     Strong = text/borders/bars; soft = chip and tint backgrounds.
+     Validated for adjacent-pair distinctness (normal vision + CVD) in both
+     modes; the slate bottom rung is deliberately grey - "bottom of the
+     ladder" - and every badge carries its union number, so colour is never
+     the only cue. */
+  --u1: #a87c09;  --u1-soft: #fdf6dd;
+  --u2: #9a3412;  --u2-soft: #fde5d8;
+  --u3: #db2777;  --u3-soft: #fce4ef;
+  --u4: #8b1592;  --u4-soft: #f8e3fb;
+  --u5: #7c3aed;  --u5-soft: #ebe6fc;
+  --u6: #1e40af;  --u6-soft: #dde9fc;
+  --u7: #0e7e9d;  --u7-soft: #d7f0f5;
+  --u8: #3e4756;  --u8-soft: #e4e8ee;
+
+  /* Sequential heat ramp for the daily matrix (single hue, light -> dark). */
+  --h1: #f3f8fe; --h2: #dde9fb; --h3: #c2d8f7; --h4: #a0bfef;
+  --h5: #7099e2; --h6: #3f74d2; --h7: #1d51ad;
+  /* The hot end goes dark enough that dark text stops working, so the text
+     flips instead of the ramp being cut short. Every step clears 4.5:1. */
+  --heat-ink: #ffffff;
+
+  /* Medals for the standings podium. */
+  --gold: #f2c14e; --silver: #c9cdd6; --bronze: #d9a06b; --medal-ink: #3a2f10;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:      #121419;
+    --panel:   #1b1e25;
+    --ink:     #e9eaec;
+    --muted:   #9aa1ad;
+    --line:    #2b303a;
+    --line-soft: #232830;
+    --hover:   #242a34;
+    --accent:  #7fb1f5;
+    --up:      #4ade80;
+    --down:    #f87171;
+    --up-soft:   rgba(74,222,128,.12);
+    --down-soft: rgba(248,113,113,.11);
+    --headbg:  #0d0f13;
+    --headink: #edeef0;
+    --shadow:  0 1px 2px rgba(0,0,0,.35), 0 4px 18px rgba(0,0,0,.30);
+
+    --u1: #fcc419;  --u1-soft: rgba(252,196,25,.13);
+    --u2: #f4732c;  --u2-soft: rgba(244,115,44,.14);
+    --u3: #f984b9;  --u3-soft: rgba(249,132,185,.14);
+    --u4: #cf3ce8;  --u4-soft: rgba(207,60,232,.14);
+    --u5: #bcabfd;  --u5-soft: rgba(188,171,253,.15);
+    --u6: #3d85f4;  --u6-soft: rgba(61,133,244,.16);
+    --u7: #2ee2fa;  --u7-soft: rgba(46,226,250,.11);
+    --u8: #8b9bb4;  --u8-soft: rgba(139,155,180,.15);
+
+    /* A deeper base than the light ramp uses: on a dark page "hot" has to gain
+       saturation rather than lightness, or the cell out-glows its own text. This
+       blue takes 92% opacity while the normal ink still clears 4.5:1. */
+    /* Eased rather than linear: a straight ramp put the middle buckets bright
+       enough that most of a 143 x 77 grid glowed at once, which reads as noise
+       instead of as ranking. Slow through the low steps, faster at the top, so
+       a genuinely big day stands out from a merely good one. */
+    --h1: rgba(37,99,235,.04); --h2: rgba(37,99,235,.10);
+    --h3: rgba(37,99,235,.18); --h4: rgba(37,99,235,.29);
+    --h5: rgba(37,99,235,.43); --h6: rgba(37,99,235,.60); --h7: rgba(37,99,235,.80);
+    --heat-ink: var(--ink);
+
+    --gold: #eab308; --silver: #b7bdc9; --bronze: #cf9560; --medal-ink: #241d07;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Per-union utility: anything tagged uc-N picks up its union's colours. */
+.uc-1 { --uc: var(--u1); --uc-soft: var(--u1-soft); }
+.uc-2 { --uc: var(--u2); --uc-soft: var(--u2-soft); }
+.uc-3 { --uc: var(--u3); --uc-soft: var(--u3-soft); }
+.uc-4 { --uc: var(--u4); --uc-soft: var(--u4-soft); }
+.uc-5 { --uc: var(--u5); --uc-soft: var(--u5-soft); }
+.uc-6 { --uc: var(--u6); --uc-soft: var(--u6-soft); }
+.uc-7 { --uc: var(--u7); --uc-soft: var(--u7-soft); }
+.uc-8 { --uc: var(--u8); --uc-soft: var(--u8-soft); }
+.uc-0 { --uc: var(--muted); --uc-soft: var(--line-soft); }
+
+/* ---- header -------------------------------------------------------------- */
+
+body > header {
+  background: var(--headbg);
+  color: var(--headink);
+  padding: 1.15rem 1.4rem .85rem;
+  /* The ladder, as a signature: 8 hard colour stops, top flight first. */
+  border-bottom: 4px solid transparent;
+  border-image: linear-gradient(90deg,
+    #fcc419 0 12.5%, #f4732c 0 25%, #f984b9 0 37.5%, #cf3ce8 0 50%,
+    #bcabfd 0 62.5%, #3d85f4 0 75%, #2ee2fa 0 87.5%, #8b9bb4 0 100%) 1;
+}
+.brand { display: flex; align-items: center; gap: .65rem; margin: 0 0 .85rem; }
+.brand svg { display: block; flex: none; }
+.brand h1 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: .01em;
+  line-height: 1;
+}
+.brand .tag {
+  display: block;
+  font-size: .62rem;
+  font-weight: 600;
+  letter-spacing: .32em;
+  text-transform: uppercase;
+  opacity: .55;
+  margin-top: .3rem;
+}
+
+nav { display: flex; flex-wrap: wrap; gap: .3rem; }
+nav a {
+  color: var(--headink);
+  text-decoration: none;
+  opacity: .6;
+  padding: .4rem .8rem;
+  border-radius: 999px;
+  font-size: .84rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+nav a:hover { opacity: 1; background: rgba(255,255,255,.09); }
+nav a.active { opacity: 1; background: rgba(255,255,255,.16); }
+/* The other season. Pushed right and set apart, because it leaves this one. */
+nav a.sibling { margin-left: auto; opacity: .65; font-style: italic; }
+nav a.sibling:hover { opacity: 1; }
+
+main { padding: 1.6rem 1.4rem 3rem; max-width: 1440px; margin: 0 auto; }
+main.wide { max-width: none; }
+
+/* ---- page furniture ------------------------------------------------------ */
+
+.pagehead { margin: 0 0 1.4rem; }
+h2 { font-size: 1.45rem; margin: 0 0 .35rem; font-weight: 800; letter-spacing: -.015em; }
+h3 { font-size: 1rem; margin: 0; font-weight: 700; }
+p.sub { color: var(--muted); margin: .1rem 0 0; font-size: .875rem; max-width: 62rem; }
+
+.note {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--u1);
+  border-radius: 8px;
+  padding: .8rem 1rem;
+  margin: 0 0 1.1rem;
+  font-size: .875rem;
+  max-width: 62rem;
+  box-shadow: var(--shadow);
+}
+
+/* Stat tiles: a labelled number, used for page summaries. */
+.tiles { display: flex; flex-wrap: wrap; gap: .5rem; margin: 0 0 1.2rem; }
+.tile {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: .5rem .85rem .45rem;
+  min-width: 6.2rem;
+}
+.tile .v {
+  display: block;
+  font-size: 1.15rem;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.01em;
+  line-height: 1.25;
+}
+.tile .l {
+  display: block;
+  font-size: .64rem;
+  font-weight: 650;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: .1rem;
+}
+.tile.t-up .v { color: var(--up); }
+.tile.t-down .v { color: var(--down); }
+
+/* ---- union badge --------------------------------------------------------- */
+
+.ub {
+  display: inline-flex;
+  align-items: center;
+  gap: .38em;
+  background: var(--uc-soft);
+  color: var(--uc);
+  border-radius: 999px;
+  padding: .16em .68em .16em .5em;
+  font-size: .78rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  line-height: 1.35;
+}
+.ub::before {
+  content: "";
+  width: .52em; height: .52em;
+  border-radius: 50%;
+  background: var(--uc);
+  flex: none;
+}
+.ub.big { font-size: 1rem; padding: .22em .8em .22em .6em; }
+.ub .un { font-weight: 700; }
+.ub.none { color: var(--muted); background: var(--line-soft); }
+.ub.none::before { background: var(--muted); opacity: .5; }
+
+/* Pool tag: a spot shared by several players. */
+.pool {
+  display: inline-block;
+  font-size: .66rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 0 .32em;
+  margin-left: .45em;
+  vertical-align: .08em;
+}
+
+/* ---- tables -------------------------------------------------------------- */
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* Wide content scrolls inside its own box. The page body never scrolls sideways. */
+.scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  font-variant-numeric: tabular-nums;
+  font-size: .875rem;
+}
+thead th {
+  position: sticky; top: 0; z-index: 3;
+  background: var(--panel);
+  border-bottom: 2px solid var(--line);
+  text-align: left;
+  padding: .55rem .65rem;
+  font-weight: 650;
+  font-size: .72rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+td { padding: .46rem .65rem; border-bottom: 1px solid var(--line-soft); }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover td { background: var(--hover); }
+.num { text-align: right; white-space: nowrap; }
+.rank { color: var(--muted); text-align: right; width: 2.6rem; }
+.strong { font-weight: 700; }
+.name { font-weight: 600; }
+.day { color: var(--muted); }
+.zero { opacity: .3; }
+.mut { color: var(--muted); }
+.up { color: var(--up); font-weight: 650; }
+.down { color: var(--down); font-weight: 650; }
+tr.dim td { opacity: .45; }
+tr.dim:hover td { opacity: 1; }
+
+/* Rank medals: circles, so they never read as union chips (rounded pills). */
+.medal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.55rem; height: 1.55rem;
+  border-radius: 50%;
+  font-size: .78rem;
+  font-weight: 800;
+  color: var(--medal-ink);
+}
+.m1 { background: var(--gold); }
+.m2 { background: var(--silver); }
+.m3 { background: var(--bronze); }
+
+/* Season-total bar: length shows scale, colour shows union. */
+td.scale { min-width: 9.5rem; }
+.bar-line {
+  display: block;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line-soft);
+  margin-top: .28rem;
+  overflow: hidden;
+}
+.bar-line i {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--uc, var(--accent));
+  width: var(--w, 0%);
+}
+
+/* ---- union cards (All Reports, Weekly, Roster) --------------------------- */
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--uc, var(--line));
+  border-radius: var(--radius);
+  margin: 0 0 1.6rem;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.cardhead {
+  display: flex; flex-wrap: wrap; align-items: center; gap: .7rem 1.2rem;
+  padding: .85rem 1rem;
+  border-bottom: 1px solid var(--line);
+}
+.cardhead .stats { display: flex; flex-wrap: wrap; gap: .4rem 1.6rem; margin-left: auto; }
+.cardhead .stat .v {
+  display: block; font-size: 1.05rem; font-weight: 750;
+  font-variant-numeric: tabular-nums; line-height: 1.2;
+}
+.cardhead .stat .l {
+  display: block; font-size: .62rem; font-weight: 650;
+  letter-spacing: .09em; text-transform: uppercase; color: var(--muted);
+}
+.card table { font-size: .84rem; }
+
+/* Summary columns on report cards sit on a faint tint so they group visually. */
+td.sum, thead th.sum { background: var(--line-soft); }
+tbody tr:hover td.sum { background: var(--hover); }
+
+/* Sticky name column inside horizontally scrolling card tables. */
+th.stick, td.stick {
+  position: sticky; left: 0; z-index: 2;
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+  max-width: 12rem;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+thead th.stick { z-index: 4; }
+tbody tr:hover td.stick { background: var(--hover); }
+.stick .rank { display: inline-block; width: 1.5rem; }
+
+/* ---- daily matrix -------------------------------------------------------- */
+
+/* A 2D scroll region: sticky header row and sticky name column both work.
+
+   The height is the fiddly part. A plain 82vh put the box's bottom edge 97-169px
+   BELOW the fold at every viewport height tested - and the horizontal scrollbar
+   lives on that bottom edge, so reaching the control that scrolls the dates meant
+   first scrolling the page down to find it. Reserving the space the banner, header
+   and title actually occupy keeps the bar on screen from the moment the page loads.
+   `dvh` so mobile browser chrome is accounted for; the floor stops it collapsing to
+   nothing on a short window. */
+.matrix-wrap {
+  overflow: auto;
+  max-height: max(22rem, min(82vh, calc(100dvh - 21.5rem)));
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scrollbar-gutter: stable;
+}
+.matrix { width: auto; }
+.matrix th.date {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  text-align: left;
+  padding: .5rem .3rem;
+  font-size: .68rem;
+  letter-spacing: .04em;
+  min-width: 1.7rem;
+}
+.matrix td { padding: .3rem .45rem; border-bottom: 1px solid var(--line-soft); }
+/* No hover override here: .matrix td.h1-.h4 outrank the row hover, so heat
+   cells keep their colour - the heat IS the signal. */
+.matrix td.h1 { background: var(--h1); }
+.matrix td.h2 { background: var(--h2); }
+.matrix td.h3 { background: var(--h3); }
+.matrix td.h4 { background: var(--h4); }
+.matrix td.h5 { background: var(--h5); }
+.matrix td.h6 { background: var(--h6); color: var(--heat-ink); }
+.matrix td.h7 { background: var(--h7); color: var(--heat-ink); }
+.matrix td.z { color: var(--muted); opacity: .45; text-align: center; }
+
+/* The matrix name column carries a badge AND a name in one sticky cell, and at
+   12rem the name lost - "iSeven7" and "iSeven77" both truncated to the same
+   string, which is worse than useless when they are different players. The badge
+   gives up its union name here (the number still identifies it, in the ladder
+   colour) and the cell widens, so full names fit. The date columns are what this
+   table is for scrolling. */
+.matrix .ub .un { display: none; }
+.matrix th.stick, .matrix td.stick { max-width: 16.5rem; }
+@media (max-width: 640px) {
+  .matrix th.stick, .matrix td.stick { max-width: 9.5rem; }
+}
+
+/* Heat legend next to the matrix title. */
+.heatkey { display: inline-flex; align-items: center; gap: .3rem;
+           font-size: .72rem; color: var(--muted); }
+.heatkey i { width: 1rem; height: .65rem; border-radius: 2px; display: inline-block; }
+
+/* ---- potential moves ----------------------------------------------------- */
+
+.chip {
+  display: inline-block;
+  border-radius: 6px;
+  padding: .1em .5em;
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  white-space: nowrap;
+}
+.chip.up   { background: var(--up-soft);   color: var(--up); }
+.chip.down { background: var(--down-soft); color: var(--down); }
+.chip.up::before   { content: "\25b2\00a0"; font-size: .8em; }
+.chip.down::before { content: "\25bc\00a0"; font-size: .8em; }
+.chip.mut  { background: var(--line-soft); color: var(--muted); font-weight: 600; }
+.chip.hold { background: var(--line-soft); color: var(--muted);
+             border: 1px dashed var(--muted); font-size: .66rem;
+             letter-spacing: .06em; }
+tr.r-up td { background: var(--up-soft); }
+tr.r-down td { background: var(--down-soft); }
+tr.r-up:hover td, tr.r-down:hover td { background: var(--hover); }
+td.reason { color: var(--muted); font-size: .8rem; }
+
+/* ---- roster grid --------------------------------------------------------- */
+
+.roster-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+  gap: 1.1rem;
+}
+.roster-grid .card { margin: 0; }
+.roster-list { list-style: none; margin: 0; padding: .35rem 0; }
+.roster-list li {
+  padding: .34rem 1rem;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: .875rem;
+  font-weight: 550;
+}
+.roster-list li:last-child { border-bottom: 0; }
+.cardhead .code {
+  margin-left: auto;
+  font-size: .7rem; font-weight: 650; letter-spacing: .12em;
+  color: var(--muted); text-transform: uppercase;
+}
+.cardhead .count { font-size: .78rem; color: var(--muted); }
+
+/* ---- footer -------------------------------------------------------------- */
+
+footer {
+  padding: 1.2rem 1.4rem 2rem;
+  color: var(--muted);
+  font-size: .8rem;
+  border-top: 1px solid var(--line);
+}
+.stamp { font-weight: 650; color: var(--ink); }
+
+/* Quiet by request: present, findable, not advertised. */
+footer .quiet { margin-top: .5rem; font-size: .8rem; opacity: .45; }
+footer .quiet a { color: inherit; }
+footer .quiet a:hover { opacity: 1; text-decoration: underline; }
+
+/* ---- banners ------------------------------------------------------------- */
+
+/* Practice-data banner. Loud on purpose: rehearsal output must never be
+   mistaken for a real season. Absent entirely on real runs. */
+.practice-banner {
+  background: repeating-linear-gradient(-45deg,
+    #7f1d1d 0 14px, #6b1717 14px 28px);
+  color: #fff; padding: .75rem 1rem; text-align: center;
+  font-weight: 800; letter-spacing: .06em; line-height: 1.45;
+  text-transform: uppercase; font-size: .9rem;
+}
+.practice-banner small {
+  display: block; font-weight: 450; opacity: .88; letter-spacing: 0;
+  text-transform: none; font-size: .8rem;
+}
+
+/* Shadow run. Deliberately a different colour from the practice banner: this data
+   is real, the caveat is only about which copy is authoritative. Red would teach
+   people to ignore red. */
+.shadow-banner {
+  background: #78350f;
+  border-bottom: 3px solid #b45309;
+  color: #fff; padding: .75rem 1rem; text-align: center;
+  font-weight: 800; letter-spacing: .06em; line-height: 1.45;
+  text-transform: uppercase; font-size: .9rem;
+}
+.shadow-banner small {
+  display: block; font-weight: 450; opacity: .88; letter-spacing: 0;
+  text-transform: none; font-size: .8rem;
+}
+
+/* ---- runbook ------------------------------------------------------------- */
+
+/* The runbook is long-form prose, so it gets prose measure and rhythm. */
+.runbook { max-width: 44rem; line-height: 1.65; }
+.runbook h1 { margin: 2.2rem 0 .6rem; font-size: 1.35rem; letter-spacing: -.01em; }
+.runbook h1:first-child { margin-top: 0; }
+.runbook h2 { margin: 1.8rem 0 .5rem; font-size: 1.1rem; }
+.runbook h3 { margin: 1.2rem 0 .4rem; font-size: 1rem; }
+.runbook li { margin: .3rem 0; }
+.runbook li.task { list-style: none; margin-left: -1.2rem; }
+.runbook li.task::before { content: "\2610\00a0\00a0"; opacity: .6; }
+.runbook pre { overflow-x: auto; background: var(--panel);
+               border: 1px solid var(--line); border-radius: 8px;
+               padding: .8rem 1rem; font-size: .82rem; }
+.runbook code { background: var(--panel); border: 1px solid var(--line-soft);
+                border-radius: 4px; padding: .05em .3em; font-size: .85em; }
+.runbook pre code { border: 0; padding: 0; background: none; }
+.runbook hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
+
+/* ---- small screens ------------------------------------------------------- */
+
+@media (max-width: 640px) {
+  main { padding: 1rem .7rem 2rem; }
+  header { padding: .9rem .8rem .7rem; }
+  h2 { font-size: 1.2rem; }
+  td, thead th { padding: .38rem .45rem; }
+  table { font-size: .8rem; }
+  .card table { font-size: .78rem; }
+  .cardhead .stats { margin-left: 0; gap: .4rem 1.1rem; }
+  th.stick, td.stick { max-width: 8rem; }
+  td.scale { min-width: 6.5rem; }
+  /* Keep the season total on screen: long names give way, with an ellipsis. */
+  td.name { max-width: 8.5rem; overflow: hidden; text-overflow: ellipsis;
+            white-space: nowrap; }
+  .tile { min-width: 5.2rem; padding: .4rem .6rem .35rem; }
+  .tile .v { font-size: 1rem; }
+  .roster-grid { grid-template-columns: 1fr; }
+}
+
+
+/* Phones: reclaim width for the number people actually came for.
+   Measured at 390px before this rule, the standings table ran 524px inside a
+   366px box, and SEASON TOTAL - the headline figure on the whole site - was
+   clipped mid-digits at the edge. Rank narrows and the union badge drops its
+   name, keeping the dot and the number; that recovers about 60px, which is
+   enough to bring the total fully on screen. The union stays identifiable by
+   number, so colour is never carrying the label alone. Only DAILY AVERAGE,
+   the least-used column, is left to scroll for.
+
+   Deliberately a tighter breakpoint than the 640px block above: at 600px there
+   is room for the names and dropping them would be a loss for nothing. */
+@media (max-width: 460px) {
+  .ub .un { display: none; }
+  .ub { padding: .16em .55em .16em .45em; gap: .3em; }
+  .ub.big .un { display: inline; }
+  td.rank, th.rank { width: 1.9rem; }
+  td, thead th { padding: .36rem .38rem; }
+  td.name { max-width: 8rem; }
+}
+
+</style>
+</head>
+<body>
+
+<header>
+<div class="brand">
+<svg width="36" height="24" viewBox="0 0 36 24" aria-hidden="true">
+<rect x="0"  y="17" width="3.4" height="7"  rx="1" fill="#8b9bb4"/>
+<rect x="4.5"  y="15" width="3.4" height="9"  rx="1" fill="#2ee2fa"/>
+<rect x="9"  y="13" width="3.4" height="11" rx="1" fill="#3d85f4"/>
+<rect x="13.5" y="11" width="3.4" height="13" rx="1" fill="#bcabfd"/>
+<rect x="18" y="9"  width="3.4" height="15" rx="1" fill="#cf3ce8"/>
+<rect x="22.5" y="6.5" width="3.4" height="17.5" rx="1" fill="#f984b9"/>
+<rect x="27" y="4"  width="3.4" height="20" rx="1" fill="#f4732c"/>
+<rect x="31.5" y="0"  width="3.4" height="24" rx="1" fill="#fcc419"/>
+</svg>
+<h1>BNGZR<span class="tag">Score Tracking</span></h1>
+</div>
+<nav>
+<a href="index.html">Standings</a>
+<a href="reports.html">All Reports</a>
+<a href="daily.html" class="active">Daily</a>
+<a href="weekly.html">Weekly</a>
+<a href="potential.html">Potential Moves</a>
+<a href="roster.html">Roster</a>
+<a href="season-prep.html">Season Prep</a>
+<a href="summer/index.html" class="sibling">Summer shadow &rarr;</a>
+</nav>
+</header>
+<main class="wide">
+<div class='pagehead'><h2>Daily score matrix</h2><p class='sub'>One row per roster spot, one column per data date (2026 season). Shading compares each day against the whole league. Scroll inside the table; names stay put. <span class='heatkey'>low <i style='background:var(--h1)'></i><i style='background:var(--h2)'></i><i style='background:var(--h3)'></i><i style='background:var(--h4)'></i><i style='background:var(--h5)'></i><i style='background:var(--h6)'></i><i style='background:var(--h7)'></i> high</span></p></div><div class='panel'><div class='matrix-wrap'><table class='matrix'><thead><tr><th class='stick'>Name</th><th class='date'>08-31</th><th class='num'>Total</th></tr></thead><tbody><tr><td class='stick'><span class='ub uc-1'><span class='un'>Alpha</span> 1</span> <span class='name'>Mindgamers (P)</span></td><td class='num h7'>1,289</td><td class='num strong sum'>1,289</td></tr><tr><td class='stick'><span class='ub uc-3'><span class='un'>Charlie</span> 3</span> <span class='name'>Ruby on Rails BNGZR</span></td><td class='num h7'>1,170</td><td class='num strong sum'>1,170</td></tr><tr><td class='stick'><span class='ub uc-1'><span class='un'>Alpha</span> 1</span> <span class='name'>Shyam Sundar BNGZR</span></td><td class='num h7'>1,122</td><td class='num strong sum'>1,122</td></tr><tr><td class='stick'><span class='ub uc-1'><span class='un'>Alpha</span> 1</span> <span class='name'>i786533 (P)</span></td><td class='num h7'>1,115</td><td class='num strong sum'>1,115</td></tr><tr><td class='stick'><span class='ub uc-2'><span class='un'>Bravo</span> 2</span> <span class='name'>Homer 68 (P)</span></td><td class='num h7'>1,105</td><td class='num strong sum'>1,105</td></tr><tr><td class='stick'><span class='ub uc-1'><span class='un'>Alpha</span> 1</span> <span class='name'>Eor137 bngzr</span></td><td class='num h7'>1,088</td><td class='num strong sum'>1,088</td></tr><tr><td class='stick'><span class='ub uc-3'><span class='un'>Charlie</span> 3</span> <span class='name'>Randygitty BNGZR-C</span></td><td class='num h7'>1,064</td><td class='num strong sum'>1,064</td></tr><tr><td class='stick'><span class='ub uc-1'><span class='un'>Alpha</span> 1</span> <span class='name'>iSeven7 BNGZR01</span></td><td class='num h7'>1,056</td><td class='num strong sum'>1,056</td></tr><tr><td class='stick'><span class='ub uc-1'><span class='un'>Alpha</span> 1</span> <span class='name'>VooDooBuntu BNGZR</span></td><td class='num h7'>1,045</td><td class='num strong sum'>1,045</td></tr><tr><td class='stick'><span class='ub uc-1'><span class='un'>Alpha</span> 1</span> <span class='name'>Mihalj BNGZR01</span></td><td class='num h7'>1,037</td><td class='num strong sum'>1,037</td></tr><tr><td class='stick'><span class='ub uc-1'><span class='un'>Alpha</span> 1</span> <span class='name'>iSeven77 BNGZR01</span></td><td class='num h7'>1,034</td><td class='num strong sum'>1,034</td></tr><tr><td class='stick'><span class='ub uc-2'><span class='un'>Bravo</span> 2</span> <span class='name'>Abby Normal BNGZR</span></td><td class='num h7'>1,021</td><td class='num strong sum'>1,021</td></tr><tr><td class='stick'><span class='ub uc-1'><span class='un'>Alpha</span> 1</span> <span class='name'>Capt Obvious</span></td><td class='num h7'>976</td><td class='num strong sum'>976</td></tr><tr><td class='stick'><span class='ub uc-1'><span class='un'>Alpha</span> 1</span> <span class='name'>TheTrainMan-BNGZR-A</span></td><td class='num h7'>946</td><td class='num strong sum'>946</td></tr><tr><td class='stick'><span class='ub uc-2'><span class='un'>Bravo</span> 2</span> <span class='name'>Chuggin BNGZR</span></td><td class='num h6'>934</td><td class='num strong sum'>934</td></tr><tr><td class='stick'><span class='ub uc-3'><span class='un'>Charlie</span> 3</span> <span class='name'>steez BNGZR</span></td><td class='num h6'>931</td><td class='num strong sum'>931</td></tr><tr><td class='stick'><span class='ub uc-1'><span class='un'>Alpha</span> 1</span> <span class='name'>Matrix Total (P)</span></td><td class='num h6'>930</td><td class='num strong sum'>930</td></tr><tr><td class='stick'><span class='ub uc-2'><span class='un'>Bravo</span> 2</span> <span class='name'>Red BNGZR</span></td><td class='num h6'>897</td><td class='num strong sum'>897</td></tr><tr><td class='stick'><span class='ub uc-3'><span class='un'>Charlie</span> 3</span> <span class='name'>OJ 12 BNGZR-B</span></td><td class='num h6'>890</td><td class='num strong sum'>890</td></tr><tr><td class='stick'><span class='ub uc-2'><span class='un'>Bravo</span> 2</span> <span class='name'>Sir Toppem Hat (P)</span></td><td class='num h6'>885</td><td class='num strong sum'>885</td></tr><tr><td class='stick'><span class='ub uc-2'><span class='un'>Bravo</span> 2</span> <span class='name'>Bacardi (P)</span></td><td class='num h6'>861</td><td class='num strong sum'>861</td></tr><tr><td class='stick'><span class='ub uc-2'><span class='un'>Bravo</span> 2</span> <span class='name'>Barad BNGZR</span></td><td class='num h6'>840</td><td class='num strong sum'>840</td></tr><tr><td class='stick'><span class='ub uc-3'><span class='un'>Charlie</span> 3</span> <span class='name'>Team Magnum (P)</span></td><td class='num h6'>809</td><td class='num strong sum'>809</td></tr><tr><td class='stick'><span class='ub uc-1'><span class='un'>Alpha</span> 1</span> <span class='name'>Pemulwuy BNGZR</span></td><td class='num h6'>771</td><td class='num strong sum'>771</td></tr><tr><td class='stick'><span class='ub uc-1'><span class='un'>Alpha</span> 1</span> <span class='name'>PatOKanada BNGZR</span></td><td class='num h6'>763</td><td class='num strong sum'>763</td></tr><tr><td class='stick'><span class='ub uc-1'><span class='un'>Alpha</span> 1</span> <span class='name'>Coffee_fan BNGZR</span></td><td class='num h6'>762</td><td class='num strong sum'>762</td></tr><tr><td class='stick'><span class='ub uc-2'><span class='un'>Bravo</span> 2</span> <span class='name'>Pirulos BNGZR</span></td><td class='num h6'>754</td><td class='num strong sum'>754</td></tr><tr><td class='stick'><span class='ub uc-2'><span class='un'>Bravo</span> 2</span> <span class='name'>Staffs Rail BNGZR</span></td><td class='num h6'>710</td><td class='num strong sum'>710</td></tr><tr><td class='stick'><span class='ub uc-2'><span class='un'>Bravo</span> 2</span> <span class='name'>Melanie BNGZR</span></td><td class='num h5'>692</td><td class='num strong sum'>692</td></tr><tr><td class='stick'><span class='ub uc-3'><span class='un'>Charlie</span> 3</span> <span class='name'>Wizdumb (P)</span></td><td class='num h5'>681</td><td class='num strong sum'>681</td></tr><tr><td class='stick'><span class='ub uc-1'><span class='un'>Alpha</span> 1</span> <span class='name'>Vladankos (P)</span></td><td class='num h5'>675</td><td class='num strong sum'>675</td></tr><tr><td class='stick'><span class='ub uc-4'><span class='un'>Delta</span> 4</span> <span class='name'>mc4martyc BNGZR</span></td><td class='num h5'>668</td><td class='num strong sum'>668</td></tr><tr><td class='stick'><span class='ub uc-1'><span class='un'>Alpha</span> 1</span> <span class='name'>Shahar BNGZR</span></td><td class='num h5'>668</td><td class='num strong sum'>668</td></tr><tr><td class='stick'><span class='ub uc-3'><span class='un'>Charlie</span> 3</span> <span class='name'>Casey Jones BNGZR</span></td><td class='num h5'>665</td><td class='num strong sum'>665</td></tr><tr><td class='stick'><span class='ub uc-3'><span class='un'>Charlie</span> 3</span> <span class='name'>H-Shoe Curve BNGZR</span></td><td class='num h5'>660</td><td class='num strong sum'>660</td></tr><tr><td class='stick'><span class='ub uc-2'><span class='un'>Bravo</span> 2</span> <span class='name'>Joey7 bngzr</span></td><td class='num h5'>653</td><td class='num strong sum'>653</td></tr><tr><td class='stick'><span class='ub uc-1'><span class='un'>Alpha</span> 1</span> <span class='name'>Michaels Corp BNGZR</span></td><td class='num h5'>653</td><td class='num strong sum'>653</td></tr><tr><td class='stick'><span class='ub uc-4'><span class='un'>Delta</span> 4</span> <span class='name'>CPR_Rail_CANADA_BNGZ</span></td><td class='num h5'>650</td><td class='num strong sum'>650</td></tr><tr><td class='stick'><span class='ub uc-2'><span class='un'>Bravo</span> 2</span> <span class='name'>Thunder1 BNGZR</span></td><td class='num h5'>639</td><td class='num strong sum'>639</td></tr><tr><td class='stick'><span class='ub uc-4'><span class='un'>Delta</span> 4</span> <span class='name'>Spike49er Bngrz05</span></td><td class='num h5'>637</td><td class='num strong sum'>637</td></tr><tr><td class='stick'><span class='ub uc-2'><span class='un'>Bravo</span> 2</span> <span class='name'>Chxken BNGZR</span></td><td class='num h5'>630</td><td class='num strong sum'>630</td></tr><tr><td class='stick'><span class='ub uc-3'><span class='un'>Charlie</span> 3</span> <span class='name'>DieselBob BNGZR</span></td><td class='num h5'>627</td><td class='num strong sum'>627</td></tr><tr><td class='stick'><span class='ub uc-4'><span class='un'>Delta</span> 4</span> <span class='name'>WMATA BNGZR-C</span></td><td class='num h5'>625</td><td class='num strong sum'>625</td></tr><tr><td class='stick'><span class='ub uc-4'><span class='un'>Delta</span> 4</span> <span class='name'>CP_RAIL_KING_BNGZR</span></td><td class='num h4'>622</td><td class='num strong sum'>622</td></tr><tr><td class='stick'><span class='ub uc-3'><span class='un'>Charlie</span> 3</span> <span class='name'>GreatGbe BNGZR</span></td><td class='num h4'>622</td><td class='num strong sum'>622</td></tr><tr><td class='stick'><span class='ub uc-1'><span class='un'>Alpha</span> 1</span> <span class='name'>L_S_V</span></td><td class='num h4'>609</td><td class='num strong sum'>609</td></tr><tr><td class='stick'><span class='ub uc-2'><span class='un'>Bravo</span> 2</span> <span class='name'>Cookie George BNGZR</span></td><td class='num h4'>582</td><td class='num strong sum'>582</td></tr><tr><td class='stick'><span class='ub uc-2'><span class='un'>Bravo</span> 2</span> <span class='name'>Trainrunner BNGZR B</span></td><td class='num h4'>567</td><td class='num strong sum'>567</td></tr><tr><td class='stick'><span class='ub uc-5'><span class='un'>Echo</span> 5</span> <span class='name'>Le Frique BNGZR</span></td><td class='num h4'>561</td><td class='num strong sum'>561</td></tr><tr><td class='stick'><span class='ub uc-1'><span class='un'>Alpha</span> 1</span> <span class='name'>Mamik_bngzr</span></td><td class='num h4'>541</td><td class='num strong sum'>541</td></tr><tr><td class='stick'><span class='ub uc-4'><span class='un'>Delta</span> 4</span> <span class='name'>LKPIX (P)</span></td><td class='num h4'>537</td><td class='num strong sum'>537</td></tr><tr><td class='stick'><span class='ub uc-2'><span class='un'>Bravo</span> 2</span> <span class='name'>Zipper BNGZR</span></td><td class='num h4'>524</td><td class='num strong sum'>524</td></tr><tr><td class='stick'><span class='ub uc-3'><span class='un'>Charlie</span> 3</span> <span class='name'>Fets (P)</span></td><td class='num h4'>520</td><td class='num strong sum'>520</td></tr><tr><td class='stick'><span class='ub uc-4'><span class='un'>Delta</span> 4</span> <span class='name'>Barking Frog BNGZR</span></td><td class='num h4'>512</td><td class='num strong sum'>512</td></tr><tr><td class='stick'><span class='ub uc-1'><span class='un'>Alpha</span> 1</span> <span class='name'>LargeM BNGZR</span></td><td class='num h4'>506</td><td class='num strong sum'>506</td></tr><tr><td class='stick'><span class='ub uc-1'><span class='un'>Alpha</span> 1</span> <span class='name'>NemesisOfFun BNGZR A</span></td><td class='num h4'>491</td><td class='num strong sum'>491</td></tr><tr><td class='stick'><span class='ub uc-3'><span class='un'>Charlie</span> 3</span> <span class='name'>Screw Loose BNGZR</span></td><td class='num h4'>467</td><td class='num strong sum'>467</td></tr><tr><td class='stick'><span class='ub uc-4'><span class='un'>Delta</span> 4</span> <span class='name'>aaadamaa bngzr</span></td><td class='num h3'>437</td><td class='num strong sum'>437</td></tr><tr><td class='stick'><span class='ub uc-5'><span class='un'>Echo</span> 5</span> <span class='name'>MooPing BNGZR</span></td><td class='num h3'>415</td><td class='num strong sum'>415</td></tr><tr><td class='stick'><span class='ub uc-3'><span class='un'>Charlie</span> 3</span> <span class='name'>ThunderOne BNGZR</span></td><td class='num h3'>411</td><td class='num strong sum'>411</td></tr><tr><td class='stick'><span class='ub uc-5'><span class='un'>Echo</span> 5</span> <span class='name'>Vanderbuilt BNGZR</span></td><td class='num h3'>388</td><td class='num strong sum'>388</td></tr><tr><td class='stick'><span class='ub uc-4'><span class='un'>Delta</span> 4</span> <span class='name'>Mind in a box BNGZR</span></td><td class='num h3'>381</td><td class='num strong sum'>381</td></tr><tr><td class='stick'><span class='ub uc-3'><span class='un'>Charlie</span> 3</span> <span class='name'>Shedevil bngzr</span></td><td class='num h3'>381</td><td class='num strong sum'>381</td></tr><tr><td class='stick'><span class='ub uc-5'><span class='un'>Echo</span> 5</span> <span class='name'>PierdziLok BNGZR</span></td><td class='num h3'>354</td><td class='num strong sum'>354</td></tr><tr><td class='stick'><span class='ub uc-5'><span class='un'>Echo</span> 5</span> <span class='name'>tRainman bngzr</span></td><td class='num h3'>350</td><td class='num strong sum'>350</td></tr><tr><td class='stick'><span class='ub uc-3'><span class='un'>Charlie</span> 3</span> <span class='name'>Cornelius V. BNGZR</span></td><td class='num h3'>349</td><td class='num strong sum'>349</td></tr><tr><td class='stick'><span class='ub uc-4'><span class='un'>Delta</span> 4</span> <span class='name'>Big Ern007 BNGZR</span></td><td class='num h3'>341</td><td class='num strong sum'>341</td></tr><tr><td class='stick'><span class='ub uc-3'><span class='un'>Charlie</span> 3</span> <span class='name'>Railrunner bngzr</span></td><td class='num h3'>337</td><td class='num strong sum'>337</td></tr><tr><td class='stick'><span class='ub uc-4'><span class='un'>Delta</span> 4</span> <span class='name'>iTrain76 BNGZR Delta</span></td><td class='num h3'>311</td><td class='num strong sum'>311</td></tr><tr><td class='stick'><span class='ub uc-3'><span class='un'>Charlie</span> 3</span> <span class='name'>SackOHammers BNGZR</span></td><td class='num h3'>296</td><td class='num strong sum'>296</td></tr><tr><td class='stick'><span class='ub uc-3'><span class='un'>Charlie</span> 3</span> <span class='name'>Rawne BNGZR</span></td><td class='num h3'>295</td><td class='num strong sum'>295</td></tr><tr><td class='stick'><span class='ub uc-3'><span class='un'>Charlie</span> 3</span> <span class='name'>Bemelino GZR</span></td><td class='num h3'>289</td><td class='num strong sum'>289</td></tr><tr><td class='stick'><span class='ub uc-4'><span class='un'>Delta</span> 4</span> <span class='name'>istan938 BNGZR</span></td><td class='num h2'>275</td><td class='num strong sum'>275</td></tr><tr><td class='stick'><span class='ub uc-4'><span class='un'>Delta</span> 4</span> <span class='name'>RSB Rails BNGZR</span></td><td class='num h2'>267</td><td class='num strong sum'>267</td></tr><tr><td class='stick'><span class='ub uc-4'><span class='un'>Delta</span> 4</span> <span class='name'>coot_BNGZR</span></td><td class='num h2'>266</td><td class='num strong sum'>266</td></tr><tr><td class='stick'><span class='ub uc-1'><span class='un'>Alpha</span> 1</span> <span class='name'>Palis078</span></td><td class='num h2'>254</td><td class='num strong sum'>254</td></tr><tr><td class='stick'><span class='ub uc-3'><span class='un'>Charlie</span> 3</span> <span class='name'>om4c BNGZR</span></td><td class='num h2'>236</td><td class='num strong sum'>236</td></tr><tr><td class='stick'><span class='ub uc-4'><span class='un'>Delta</span> 4</span> <span class='name'>Rodolfo BNGZR Brasil</span></td><td class='num h2'>234</td><td class='num strong sum'>234</td></tr><tr><td class='stick'><span class='ub uc-5'><span class='un'>Echo</span> 5</span> <span class='name'>Punchinello BNGZR</span></td><td class='num h2'>204</td><td class='num strong sum'>204</td></tr><tr><td class='stick'><span class='ub uc-4'><span class='un'>Delta</span> 4</span> <span class='name'>Roberts BNGZR</span></td><td class='num h2'>192</td><td class='num strong sum'>192</td></tr><tr><td class='stick'><span class='ub uc-5'><span class='un'>Echo</span> 5</span> <span class='name'>SMOKE-CONDUCTOR-GZR</span></td><td class='num h2'>176</td><td class='num strong sum'>176</td></tr><tr><td class='stick'><span class='ub uc-6'><span class='un'>Foxtrot</span> 6</span> <span class='name'>Freaky BNGZR</span></td><td class='num h2'>154</td><td class='num strong sum'>154</td></tr><tr><td class='stick'><span class='ub uc-4'><span class='un'>Delta</span> 4</span> <span class='name'>111MCH111_BNGZR_D</span></td><td class='num h2'>150</td><td class='num strong sum'>150</td></tr><tr><td class='stick'><span class='ub uc-1'><span class='un'>Alpha</span> 1</span> <span class='name'>SourGrapeWhine BNGZR</span></td><td class='num h2'>150</td><td class='num strong sum'>150</td></tr><tr><td class='stick'><span class='ub uc-5'><span class='un'>Echo</span> 5</span> <span class='name'>Leo_Prime_BNGZR</span></td><td class='num h2'>147</td><td class='num strong sum'>147</td></tr><tr><td class='stick'><span class='ub uc-3'><span class='un'>Charlie</span> 3</span> <span class='name'>SIR R.P. BNGZR</span></td><td class='num h2'>135</td><td class='num strong sum'>135</td></tr><tr><td class='stick'><span class='ub uc-5'><span class='un'>Echo</span> 5</span> <span class='name'>MillsieBNGZR</span></td><td class='num h1'>134</td><td class='num strong sum'>134</td></tr><tr><td class='stick'><span class='ub uc-4'><span class='un'>Delta</span> 4</span> <span class='name'>Alfingore_BNGZR</span></td><td class='num h1'>128</td><td class='num strong sum'>128</td></tr><tr><td class='stick'><span class='ub uc-5'><span class='un'>Echo</span> 5</span> <span class='name'>Starrider BNGZRO5</span></td><td class='num h1'>125</td><td class='num strong sum'>125</td></tr><tr><td class='stick'><span class='ub uc-5'><span class='un'>Echo</span> 5</span> <span class='name'>Adam BNGZR</span></td><td class='num h1'>122</td><td class='num strong sum'>122</td></tr><tr><td class='stick'><span class='ub uc-4'><span class='un'>Delta</span> 4</span> <span class='name'>Silverstone BNGZR</span></td><td class='num h1'>119</td><td class='num strong sum'>119</td></tr><tr><td class='stick'><span class='ub uc-4'><span class='un'>Delta</span> 4</span> <span class='name'>Milos  bngzr</span></td><td class='num h1'>112</td><td class='num strong sum'>112</td></tr><tr><td class='stick'><span class='ub uc-5'><span class='un'>Echo</span> 5</span> <span class='name'>RatPacker BNGZR</span></td><td class='num h1'>112</td><td class='num strong sum'>112</td></tr><tr><td class='stick'><span class='ub uc-5'><span class='un'>Echo</span> 5</span> <span class='name'>Ajith2024 BNGZR</span></td><td class='num h1'>103</td><td class='num strong sum'>103</td></tr><tr><td class='stick'><span class='ub uc-5'><span class='un'>Echo</span> 5</span> <span class='name'>Ugly seal 8NG2R</span></td><td class='num h1'>93</td><td class='num strong sum'>93</td></tr><tr><td class='stick'><span class='ub uc-5'><span class='un'>Echo</span> 5</span> <span class='name'>IndyPete BNGZR</span></td><td class='num h1'>81</td><td class='num strong sum'>81</td></tr><tr><td class='stick'><span class='ub uc-5'><span class='un'>Echo</span> 5</span> <span class='name'>Drbear_BNGZR</span></td><td class='num h1'>57</td><td class='num strong sum'>57</td></tr><tr><td class='stick'><span class='ub uc-5'><span class='un'>Echo</span> 5</span> <span class='name'>Jiroo BNGZR</span></td><td class='num h1'>50</td><td class='num strong sum'>50</td></tr><tr><td class='stick'><span class='ub uc-4'><span class='un'>Delta</span> 4</span> <span class='name'>GZR - das411</span></td><td class='num h1'>48</td><td class='num strong sum'>48</td></tr><tr><td class='stick'><span class='ub uc-4'><span class='un'>Delta</span> 4</span> <span class='name'>Dol.j BNGZR</span></td><td class='num h1'>27</td><td class='num strong sum'>27</td></tr><tr><td class='stick'><span class='ub uc-8'><span class='un'>Hotel</span> 8</span> <span class='name'>Chuggin Along (P)</span></td><td class='z'>·</td><td class='num strong sum'>0</td></tr><tr><td class='stick'><span class='ub uc-3'><span class='un'>Charlie</span> 3</span> <span class='name'>CP Rail King (P)</span></td><td class='z'>·</td><td class='num strong sum'>0</td></tr><tr><td class='stick'><span class='ub uc-8'><span class='un'>Hotel</span> 8</span> <span class='name'>Deibiddo (P)</span></td><td class='z'>·</td><td class='num strong sum'>0</td></tr><tr><td class='stick'><span class='ub uc-8'><span class='un'>Hotel</span> 8</span> <span class='name'>Galman (P)</span></td><td class='z'>·</td><td class='num strong sum'>0</td></tr><tr><td class='stick'><span class='ub none uc-0'>—</span> <span class='name'>gothic rose BNGZR</span></td><td class='num'>0</td><td class='num strong sum'>0</td></tr><tr><td class='stick'><span class='ub none uc-0'>—</span> <span class='name'>Juggernaut (P)</span></td><td class='z'>·</td><td class='num strong sum'>0</td></tr><tr><td class='stick'><span class='ub none uc-0'>—</span> <span class='name'>LakeBH (P)</span></td><td class='z'>·</td><td class='num strong sum'>0</td></tr><tr><td class='stick'><span class='ub none uc-0'>—</span> <span class='name'>McBadger Freight (P)</span></td><td class='z'>·</td><td class='num strong sum'>0</td></tr><tr><td class='stick'><span class='ub uc-6'><span class='un'>Foxtrot</span> 6</span> <span class='name'>Mullet Militia (P)</span></td><td class='z'>·</td><td class='num strong sum'>0</td></tr><tr><td class='stick'><span class='ub none uc-0'>—</span> <span class='name'>Rail Rider (P)</span></td><td class='z'>·</td><td class='num strong sum'>0</td></tr><tr><td class='stick'><span class='ub none uc-0'>—</span> <span class='name'>Rusty (P)</span></td><td class='z'>·</td><td class='num strong sum'>0</td></tr><tr><td class='stick'><span class='ub none uc-0'>—</span> <span class='name'>Sherri Dee (P)</span></td><td class='z'>·</td><td class='num strong sum'>0</td></tr><tr><td class='stick'><span class='ub uc-1'><span class='un'>Alpha</span> 1</span> <span class='name'>ThunderOne (P)</span></td><td class='z'>·</td><td class='num strong sum'>0</td></tr><tr><td class='stick'><span class='ub uc-8'><span class='un'>Hotel</span> 8</span> <span class='name'>Vick (P)</span></td><td class='z'>·</td><td class='num strong sum'>0</td></tr><tr><td class='stick'><span class='ub none uc-0'>—</span> <span class='name'>Waisting Time BNGZR</span></td><td class='num'>0</td><td class='num strong sum'>0</td></tr></tbody></table></div></div>
+</main>
+<footer>
+<div class="stamp">Computed at 2026-09-01 16:06:30 UTC</div>
+<div>Season 2026-08-31 to 2026-11-22 · data through 2026-08-31 · 1 scored day(s)</div>
+<div class="quiet"><a href="instructions.html">How to run this</a></div>
+</footer>
+</body>
+</html>
