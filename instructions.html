@@ -643,7 +643,7 @@ footer .quiet a:hover { opacity: 1; text-decoration: underline; }
 <p><strong>Before the season starts</strong> every run will say &quot;No column for …&quot;. That is expected and harmless — the scores still import, only the roster stamping is skipped.</p>
 <h2>What Run Engine actually does</h2>
 <p>Two separate things, and only one of them is global.</p>
-<ol><li><strong>It stamps today&#x27;s column</strong> on <code>Roster History</code> — in **the book you pressed it in, and only that one**. Everybody&#x27;s current union is carried into today, and anyone whose <code>Status</code> reads <code>Gone</code> or <code>Moved</code> gets a <code>-</code> instead.</li><li><strong>It tells GitHub to rebuild everything.</strong> That half does not know or care which book you pressed in — the button sends no sheet name at all. Both seasons are rescored and the whole website is republished either way.</li></ol>
+<ol><li><strong>It stamps today&#x27;s column</strong> on <code>Roster History</code> — in **the book you pressed it in, and only that one**. Everybody&#x27;s current union is carried into today, and anyone whose <code>Status</code> reads <code>Gone</code> or <code>Moved</code> gets a <code>-</code> instead. Any PFID on the <code>Roster</code> with no <code>Roster History</code> row yet gets one, placed in whichever union the game last saw them in (<code>Guest</code> rows are skipped — a guest is meant to have no history row).</li><li><strong>It tells GitHub to rebuild everything.</strong> That half does not know or care which book you pressed in — the button sends no sheet name at all. Both seasons are rescored and the whole website is republished either way.</li></ol>
 <p>So: <em>does it matter which sheet I press it in?</em> Not for the reports. Yes for the stamping. If you mark somebody <code>Gone</code> in one book, press <strong>Run Engine from that book</strong> so their <code>-</code> actually lands there.</p>
 <p>Where you <strong>paste the capture</strong> is a different question with a simpler answer: each season reads capture tabs only from its own control sheet. Summer&#x27;s go in the Summer sheet, Fall&#x27;s go in the Fall sheet. Nothing crosses over.</p>
 <h2>Falling behind, and catching up</h2>
@@ -679,9 +679,31 @@ footer .quiet a:hover { opacity: 1; text-decoration: underline; }
 <p>Then <strong>BNGZR → Run Engine</strong>, or the reports keep showing the old history until somebody else happens to run it.</p>
 <p>You can also drag-fill by hand if you prefer — the menu item just makes it one deliberate action instead of one you can forget halfway.</p>
 <h2>Add somebody</h2>
-<ol><li><code>Roster</code> tab — new row: PFID, in-game name, Pool ID if they are joining a pool, Status <code>Active</code></li><li><code>Roster History</code> tab — new row with the same PFID in column A and their name in column B</li><li>Put their union in <strong>today&#x27;s column</strong></li></ol>
-<p>They score from the first day they hold a union. Nothing before that.</p>
-<p>They will not appear in any report until a capture actually shows them scoring — a brand-new player with a union but no points yet is simply not on the board.</p>
+<ol><li><code>Roster</code> tab — new row: <strong>the PFID</strong>. Status <code>Active</code>, and a Pool ID if they are joining a pool</li><li><strong>BNGZR → Run Engine</strong></li></ol>
+<p>That is the whole task. Do not type a name and do not touch <code>Roster History</code>.</p>
+<p>The name arrives on its own, from the last import — and keeps arriving, so a player who renames themselves in the game shows their new name on the next run without anybody editing a cell. Run Engine gives them their <code>Roster History</code> row and puts them in whichever union the game last saw them playing in.</p>
+<p><strong>If they show no union after the first press, press GO again.</strong> Somebody added on the same day as their very first capture appearance needs one run in between: the run is what learns where they play, and the button reads that answer at the start of the press, before the run happens. Every other case lands on the first press.</p>
+<p>Two things worth recognising on sight:</p>
+<ul><li><strong><code>(never seen)</code> as a name</strong> — no capture has ever carried that PFID. Either they have</li></ul>
+<p>not played yet, or the number has a typo in it. Check the number first</p>
+<ul><li><strong>No union in today&#x27;s column</strong> — they are on the roster but not placed, so they score</li></ul>
+<p>nothing. Press GO again; if it is still blank after a run, type the union in yourself</p>
+<p>They score from the first day they hold a union. Nothing before that. They will not appear in any report until a capture actually shows them scoring — a brand-new player with a union but no points yet is simply not on the board.</p>
+<h3>Most Recent Previous Name</h3>
+<p><code>Roster</code>&#x27;s last column tracks renames the same way In-Game Name does — it is another lookup into <code>_Names</code>, not a value anybody types. It shows the most recent DISTINCT name the season&#x27;s captures carried before the current one:</p>
+<ul><li><strong>A name</strong> — they were called that before their most recent rename. A capture day</li></ul>
+<p>where the export simply dropped their name does not count as a rename, so a blank import day never shows up here</p>
+<ul><li><strong><code>original</code></strong> — the ledger has seen them, but never under a different name</li><li><strong>blank</strong> — no capture has ever carried that PFID, same population as <code>(never seen)</code></li></ul>
+<p>in In-Game Name</p>
+<h2>The tinted columns are formulas — never sort through row 2</h2>
+<p>Five columns are calculated, one formula each, sitting in <strong>row 2</strong> and filling the whole column below it:</p>
+<div class='tablewrap'><table><thead><tr><th>Tab</th><th>Columns</th></tr></thead><tbody>
+<tr><td><code>Roster</code></td><td><strong>In-Game Name</strong>, <strong>Current Union</strong>, <strong>Most Recent Previous Name</strong></td></tr>
+<tr><td><code>Roster History</code></td><td><strong>Name</strong>, <strong>CU</strong></td></tr>
+</tbody></table></div>
+<p>They are tinted pale blue for exactly this reason. Typing into one of those cells — even selecting it and pressing delete — breaks the entire column at once: it goes <code>#REF!</code> and every name or union in it disappears.</p>
+<p>The way this actually happens is a <strong>sort</strong>. Select a range that includes row 2, sort it, and the formula moves out of row 2 into the middle of the data, taking all five columns down with it. So: <strong>select from row 3 down</strong>, or use <code>Data → Create a filter</code> instead, which sorts the view and never moves a cell.</p>
+<p>Nothing is lost if it does happen — <code>scripts/repair_control_sheets.py --only-fall --apply</code> puts all five back.</p>
 <h2>Someone shows up who isn&#x27;t on the roster</h2>
 <p>The union is open door, so people play in it who were never added. The report site&#x27;s <strong>Roster</strong> page has a section for exactly this: <strong>Unaccounted contributors</strong> — every PFID the capture has seen that has no Roster row, with their current name, the union they last played in, first seen, last seen, and how much they&#x27;ve put up. Anyone who hasn&#x27;t shown up in over a week renders dimmed, under <strong>No longer present</strong> — probably gone for good, but not worth chasing.</p>
 <p>For each name on that list, pick one:</p>
@@ -704,7 +726,7 @@ footer .quiet a:hover { opacity: 1; text-decoration: underline; }
 <ul><li><code>Pools</code> tab: the Pool ID and display name, plus <strong>Members</strong> and <strong>Who</strong> — two formulas</li></ul>
 <p>that list the pool&#x27;s current members. They update as you type; no run needed</p>
 <ul><li><code>Roster</code> tab: put that Pool ID on each member&#x27;s row</li><li><code>Roster History</code>: the <strong>pool</strong> has its own row and its own union. Members do not need one</li></ul>
-<p><code>Who</code> showing an em dash means the pool has no members at all, so it scores nothing. A <code>#number</code> instead of a name means that Roster row has no <strong>In-Game Name</strong> filled in — the member still counts, you just cannot see who it is until you add the name.</p>
+<p><code>Who</code> showing an em dash means the pool has no members at all, so it scores nothing. A <code>#number</code> instead of a name means no capture has ever carried a name for that PFID — the member still counts, there is just nothing to call them yet.</p>
 <p><strong>Pools cannot be created or changed after week two.</strong> That is a union rule; nothing in the software enforces it, which is exactly why it matters that people follow it.</p>
 <p><strong>Never change a member&#x27;s Pool ID mid-season.</strong> Pool membership is applied to that player&#x27;s <em>whole</em> season, not from the day you change it — so editing a Pool ID silently re-attributes every past day of their scoring to the new pool.</p>
 <hr>
@@ -745,7 +767,8 @@ footer .quiet a:hover { opacity: 1; text-decoration: underline; }
 <p>One thing to know: the shadow sheet&#x27;s roster is a <strong>copy</strong>, taken on 2026-08-18. It does not follow edits you make to the live workbook, and vice versa. If somebody moves union or leaves during the last week, make the change in the shadow sheet too — and press <strong>Run Engine there</strong>, because the stamping only ever touches the book you press it in. The run reports exactly which rows disagree, so you are not hunting.</p>
 <p>After 2026-08-23 <strong>Wizdumb</strong> switches it off (one repo variable) and the <code>/summer/</code> pages come down on the next run.</p>
 <h2>Tabs the engine owns</h2>
-<p><code>P/R Proposal</code>, <code>Activity Log</code>, <code>Standings</code>, <code>Daily Scores</code>, <code>Preview</code>. All rewritten on every run. Do not hand-edit them; anything typed there is lost on the next press.</p>
+<p><code>P/R Proposal</code>, <code>Activity Log</code>, <code>Standings</code>, <code>Daily Scores</code>, <code>Preview</code>, <code>_Names</code>. All rewritten on every run. Do not hand-edit them; anything typed there is lost on the next press.</p>
+<p><strong><code>_Names</code> is hidden and must never be deleted.</strong> It is the directory every name column looks up — PFID, latest in-game name, last seen, latest union, previous in-game name. Delete the tab and all five tinted formula columns read <code>#REF!</code> at once. Clearing it is harmless; the next run fills it back in.</p>
 <p><code>Roster</code>, <code>Pools</code>, <code>Roster History</code>, <code>Config</code> are yours. The engine only ever reads them. The <code>Members</code> and <code>Who</code> columns on <code>Pools</code> are the exception the engine cannot touch: it reads that tab by position and only ever looks at columns A–D.</p>
 <h2>The Preview tab</h2>
 <p><code>Standings</code> is a photograph — it shows what the engine computed at the last press and does not move until the next one. <code>Preview</code> is the live version: change a Pool ID on the <code>Roster</code> and the pool&#x27;s member count, total, score and rank all move as you type.</p>
@@ -764,7 +787,7 @@ footer .quiet a:hover { opacity: 1; text-decoration: underline; }
 <p>The numbers still only become real when you press <strong>Run Engine</strong>.</p></div>
 </main>
 <footer>
-<div class="stamp">Computed at 2026-09-01 22:44:52 UTC</div>
+<div class="stamp">Computed at 2026-09-02 00:32:25 UTC</div>
 <div>Season 2026-08-31 to 2026-11-22 · data through 2026-08-31 · 1 scored day(s)</div>
 <div class="quiet"><a href="instructions.html">How to run this</a></div>
 </footer>
