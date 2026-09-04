@@ -681,16 +681,15 @@ footer .quiet a:hover { opacity: 1; text-decoration: underline; }
 <h2>Add somebody</h2>
 <ol><li><code>Roster</code> tab — new row: <strong>the PFID</strong>. Status <code>Active</code>, and a Pool ID if they are joining a pool</li><li><strong>BNGZR → Run Engine</strong></li></ol>
 <p>That is the whole task. Do not type a name and do not touch <code>Roster History</code>.</p>
-<p>The name arrives on its own, from the last import — and keeps arriving, so a player who renames themselves in the game shows their new name on the next run without anybody editing a cell. Run Engine gives them their <code>Roster History</code> row and puts them in whichever union the game last saw them playing in.</p>
-<p><strong>If they show no union after the first press, press GO again.</strong> Somebody added on the same day as their very first capture appearance needs one run in between: the run is what learns where they play, and the button reads that answer at the start of the press, before the run happens. Every other case lands on the first press.</p>
+<p>The name arrives on its own, from the last import — and keeps arriving, so a player who renames themselves in the game shows their new name on the next run without anybody editing a cell. Run Engine gives them their <code>Roster History</code> row, and places them in whichever union the game last saw them playing in — on the first press after a capture has carried them, however many presses later that turns out to be. There is no second step: until that capture exists, every press&#x27;s message names them as still unplaced. A player who has never played needs nothing from you.</p>
 <p>Two things worth recognising on sight:</p>
 <ul><li><strong><code>(never seen)</code> as a name</strong> — no capture has ever carried that PFID. Either they have</li></ul>
 <p>not played yet, or the number has a typo in it. Check the number first</p>
-<ul><li><strong>No union in today&#x27;s column</strong> — they are on the roster but not placed, so they score</li></ul>
-<p>nothing. Press GO again; if it is still blank after a run, type the union in yourself</p>
+<ul><li><strong>No union in today&#x27;s column</strong> — they are on the roster but not placed. Check the Run</li></ul>
+<p>Engine message; it names them, or shows the PFID when no capture has a name. They score nothing until placed. If you already know the union and want it now, type it into today&#x27;s column on <code>Roster History</code> yourself</p>
 <p>They score from the first day they hold a union. Nothing before that. They will not appear in any report until a capture actually shows them scoring — a brand-new player with a union but no points yet is simply not on the board.</p>
 <h3>Most Recent Previous Name</h3>
-<p><code>Roster</code>&#x27;s last column tracks renames the same way In-Game Name does — it is another lookup into <code>_Names</code>, not a value anybody types. It shows the most recent DISTINCT name the season&#x27;s captures carried before the current one:</p>
+<p><code>Roster</code>&#x27;s third column tracks renames the same way In-Game Name does — it is another lookup into <code>_Names</code>, not a value anybody types. It shows the most recent DISTINCT name the season&#x27;s captures carried before the current one:</p>
 <ul><li><strong>A name</strong> — they were called that before their most recent rename. A capture day</li></ul>
 <p>where the export simply dropped their name does not count as a rename, so a blank import day never shows up here</p>
 <ul><li><strong><code>original</code></strong> — the ledger has seen them, but never under a different name</li><li><strong>blank</strong> — no capture has ever carried that PFID, same population as <code>(never seen)</code></li></ul>
@@ -698,7 +697,7 @@ footer .quiet a:hover { opacity: 1; text-decoration: underline; }
 <h2>The tinted columns are formulas — never sort through row 2</h2>
 <p>Five columns are calculated, one formula each, sitting in <strong>row 2</strong> and filling the whole column below it:</p>
 <div class='tablewrap'><table><thead><tr><th>Tab</th><th>Columns</th></tr></thead><tbody>
-<tr><td><code>Roster</code></td><td><strong>In-Game Name</strong>, <strong>Current Union</strong>, <strong>Most Recent Previous Name</strong></td></tr>
+<tr><td><code>Roster</code></td><td><strong>In-Game Name</strong>, <strong>Most Recent Previous Name</strong>, <strong>Current Union</strong></td></tr>
 <tr><td><code>Roster History</code></td><td><strong>Name</strong>, <strong>CU</strong></td></tr>
 </tbody></table></div>
 <p>They are tinted pale blue for exactly this reason. Typing into one of those cells — even selecting it and pressing delete — breaks the entire column at once: it goes <code>#REF!</code> and every name or union in it disappears.</p>
@@ -787,7 +786,7 @@ footer .quiet a:hover { opacity: 1; text-decoration: underline; }
 <p>The numbers still only become real when you press <strong>Run Engine</strong>.</p></div>
 </main>
 <footer>
-<div class="stamp">Computed at 2026-09-03 14:55:38 UTC</div>
+<div class="stamp">Computed at 2026-09-04 01:22:59 UTC</div>
 <div>Season 2026-08-31 to 2026-11-22 · data through 2026-09-02 · 3 scored day(s)</div>
 <div class="quiet"><a href="instructions.html">How to run this</a></div>
 </footer>
