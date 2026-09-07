@@ -165,6 +165,9 @@ nav a.active { opacity: 1; background: rgba(255,255,255,.16); }
 /* The other season. Pushed right and set apart, because it leaves this one. */
 nav a.sibling { margin-left: auto; opacity: .65; font-style: italic; }
 nav a.sibling:hover { opacity: 1; }
+/* One separator between the two view families - every-player views vs. the
+   pools+singles reporting views. */
+nav .sep { opacity: .3; padding: .4rem .25rem; align-self: center; }
 
 main { padding: 1.6rem 1.4rem 3rem; max-width: 1440px; margin: 0 auto; }
 main.wide { max-width: none; }
@@ -340,6 +343,28 @@ td.scale { min-width: 9.5rem; }
   width: var(--w, 0%);
 }
 
+/* ---- pool member toggle (All Reports, Potential Moves) ------------------- */
+
+.tg {
+  font: inherit;
+  font-size: .68rem;
+  font-weight: 650;
+  color: var(--muted);
+  background: var(--line-soft);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: .05em .55em;
+  margin-left: .4em;
+  cursor: pointer;
+}
+.tg:hover { background: var(--hover); color: var(--ink); }
+.tg[aria-expanded="true"] { color: var(--ink); background: var(--hover); }
+
+/* Member sub-rows: dimmed and indented under their pool's row. */
+tr.member td { opacity: .72; }
+tr.member .name, tr.member td.stick .name { padding-left: 1.3rem; font-weight: 500; }
+.member-avg { color: var(--muted); font-weight: 600; }
+
 /* ---- union cards (All Reports, Weekly, Roster) --------------------------- */
 
 .card {
@@ -482,6 +507,19 @@ td.reason { color: var(--muted); font-size: .8rem; }
   font-weight: 550;
 }
 .roster-list li:last-child { border-bottom: 0; }
+.roster-list ul.members {
+  list-style: none;
+  margin: .3rem 0 0;
+  padding: 0 0 0 1.1rem;
+  border-left: 2px solid var(--line);
+}
+.roster-list ul.members li {
+  padding: .18rem 0 .18rem .5rem;
+  border-bottom: 0;
+  font-size: .8rem;
+  font-weight: 500;
+  color: var(--muted);
+}
 .cardhead .code {
   margin-left: auto;
   font-size: .7rem; font-weight: 650; letter-spacing: .12em;
@@ -615,9 +653,10 @@ footer .quiet a:hover { opacity: 1; text-decoration: underline; }
 </div>
 <nav>
 <a href="index.html">Standings</a>
-<a href="reports.html">All Reports</a>
 <a href="daily.html">Daily</a>
 <a href="weekly.html">Weekly</a>
+<span class="sep">|</span>
+<a href="reports.html">All Reports</a>
 <a href="potential.html">Potential Moves</a>
 <a href="roster.html">Roster</a>
 <a href="season-prep.html" class="active">Season Prep</a>
@@ -638,10 +677,11 @@ footer .quiet a:hover { opacity: 1; text-decoration: underline; }
 <tr><td>Config</td><td>Preview</td></tr>
 <tr><td></td><td>Activity Log</td></tr>
 <tr><td></td><td><code>_Names</code> (hidden)</td></tr>
+<tr><td></td><td><code>_Known Names</code> (hidden)</td></tr>
 </tbody></table></div>
 <p>Anything you type into an engine-owned tab is <strong>erased on the next Run Engine press</strong>. It isn&#x27;t punishment, it&#x27;s how the tabs stay truthful — they are rebuilt from scratch every run.</p>
 <h2>Before the season starts (the 8/31 staging)</h2>
-<ol><li><strong>Place everyone.</strong> In <code>Roster History</code>, every player and every pool needs a value in the season&#x27;s first date column: a union number, or <code>-</code> if they are sitting the season out. A blank is not a dash — blanks carry the <em>previous</em> value forward, and on day one there is nothing to carry.</li><li><strong>Give every pool its own union.</strong> Pools rank as if they were players, so each pool has its own row in <code>Roster History</code> and needs its own union. Members of a pool need <em>no</em> union of their own — the pool carries them.</li><li><strong>Check the Hold flags.</strong> Anyone starting the season on a break gets <code>Hold = Y</code> (see below).</li><li><strong>Expect red ✗ marks in GitHub until the first real capture lands.</strong> Before there is a score to compute, Run Engine reports &quot;nothing to score&quot; and stops. That is the system working, not breaking.</li></ol>
+<ol><li><strong>Place everyone.</strong> In <code>Roster History</code>, every player and every pool needs a value in the season&#x27;s first date column: a union number, or <code>-</code> if they are sitting the season out. A blank is not a dash — blanks carry the <em>previous</em> value forward, and on day one there is nothing to carry.</li><li><strong>Give every pool its own union.</strong> Pools have their own row in <code>Roster History</code> and need their own union. Members keep their own rows too — every member is stamped every press like anyone else, because the engine needs the member&#x27;s own row to score them — but the union the Roster and the pool-view reports show for a member is the <em>pool&#x27;s</em>, not their own.</li><li><strong>Check the Hold flags.</strong> Anyone starting the season on a break gets <code>Hold = Y</code> (see below).</li><li><strong>Expect red ✗ marks in GitHub until the first real capture lands.</strong> Before there is a score to compute, Run Engine reports &quot;nothing to score&quot; and stops. That is the system working, not breaking.</li></ol>
 <h2>Moving a player between unions</h2>
 <p>Type the new union number into <strong>today&#x27;s column</strong> in <code>Roster History</code>. That&#x27;s the whole move. On the next Run Engine press it takes effect and carries forward every day after.</p>
 <p>**Fixing a <em>past</em> day is different.<strong> If you correct an old column and stop there, the fix silently disappears — the day after your fix still holds the old union, and carry-forward resurrects it. Fix the old cell, select it, then run </strong>BNGZR → Fill Forward from selection** so the correction walks forward to today. The <code>CU</code> (current union) column at the far right is your check: it shows what the engine will actually use.</p>
@@ -658,7 +698,9 @@ footer .quiet a:hover { opacity: 1; text-decoration: underline; }
 <ol><li><code>Roster</code> tab: <code>Status</code> back to <code>Active</code>.</li><li><code>Roster History</code>: type their union into <strong>today&#x27;s column</strong>.</li></ol>
 <p>If you do only the first, the next run overwrites their union with <code>-</code> again — the departure carries forward until a real union interrupts it.</p>
 <h2>Pools</h2>
-<ul><li>A pool ranks like a single player; its score is the sum of its members.</li><li>Members are attached via the <code>Pool ID</code> column on the <code>Roster</code> tab; the pool&#x27;s</li></ul>
+<ul><li>On All Reports, Potential Moves, and the Roster page, a pool ranks like a single</li></ul>
+<p>player; its score is the sum of its members. On Standings, Daily, and Weekly, there is no pool row — every member ranks on their own numbers.</p>
+<ul><li>Members are attached via the <code>Pool ID</code> column on the <code>Roster</code> tab; the pool&#x27;s</li></ul>
 <p>name and ID live on the <code>Pools</code> tab. The <code>Members</code> / <code>Who</code> columns there are live formulas — leave them be.</p>
 <ul><li><strong>Never change a member&#x27;s Pool ID mid-season.</strong> The engine re-attributes that</li></ul>
 <p>player&#x27;s <em>entire season</em> of scores to the new pool, past days included. If a pool change is truly needed, it is a decision for the group, not a quiet edit.</p>
@@ -681,9 +723,22 @@ footer .quiet a:hover { opacity: 1; text-decoration: underline; }
 <p>When in doubt: <strong>BNGZR → What will Run Engine do?</strong> explains the next press before you commit to it, and costs nothing.</p></div>
 </main>
 <footer>
-<div class="stamp">Computed at 2026-09-07 15:17:41 UTC</div>
+<div class="stamp">Computed at 2026-09-07 16:35:41 UTC</div>
 <div>Season 2026-08-31 to 2026-11-22 · data through 2026-09-06 · 7 scored day(s)</div>
 <div class="quiet"><a href="instructions.html">How to run this</a></div>
 </footer>
+<script>
+document.addEventListener('click', function (e) {
+  var b = e.target.closest && e.target.closest('.tg');
+  if (!b) return;
+  var open = b.getAttribute('aria-expanded') === 'true';
+  var tr = b.closest('tr').nextElementSibling;
+  while (tr && tr.classList.contains('member')) {
+    tr.hidden = open;
+    tr = tr.nextElementSibling;
+  }
+  b.setAttribute('aria-expanded', String(!open));
+});
+</script>
 </body>
 </html>
